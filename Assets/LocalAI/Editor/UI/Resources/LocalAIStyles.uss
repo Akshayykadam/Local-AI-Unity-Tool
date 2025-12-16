@@ -1,0 +1,98 @@
+/* LocalAIStyles.uss */
+
+.root {
+    flex-grow: 1;
+    background-color: #282828;
+}
+
+/* Header */
+.header {
+    height: 40px;
+    background-color: #3C3C3C;
+    flex-direction: row;
+    align-items: center;
+    padding-left: 10px;
+    padding-right: 10px;
+    border-bottom-width: 1px;
+    border-bottom-color: #202020;
+}
+
+.status-indicator {
+    width: 6px;
+    height: 6px;
+    border-radius: 3px;
+    background-color: #808080;
+    margin-right: 6px;
+}
+
+.status-indicator.downloading { background-color: #FFC107; }
+.status-indicator.ready { background-color: #4CAF50; }
+.status-indicator.error { background-color: #F44336; }
+
+.header-title {
+    -unity-font-style: bold;
+    font-size: 12px;
+    color: #E0E0E0;
+    flex-grow: 1;
+}
+
+/* Split View */
+.main-split {
+    flex-grow: 1;
+    flex-direction: row;
+}
+
+.context-view {
+    width: 250px;
+    min-width: 200px;
+    border-right-width: 1px;
+    border-right-color: #202020;
+    background-color: #2D2D2D;
+}
+
+.response-view {
+    flex-grow: 1;
+    background-color: #1E1E1E;
+    padding: 10px;
+}
+
+/* Action Bar */
+.action-bar {
+    height: 40px;
+    background-color: #3C3C3C;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 10px;
+    border-top-width: 1px;
+    border-top-color: #202020;
+}
+
+/* Common */
+.section-title {
+    -unity-font-style: bold;
+    color: #AAAAAA;
+    margin: 5px;
+    padding-bottom: 5px;
+    border-bottom-width: 1px;
+    border-bottom-color: #404040;
+}
+
+Label {
+    color: #C0C0C0;
+}
+
+Button {
+    background-color: #444444;
+    border-width: 0;
+    border-radius: 2px;
+    color: #E0E0E0;
+}
+
+Button:hover {
+    background-color: #555555;
+}
+
+Button:active {
+    background-color: #222222;
+}

@@ -1,0 +1,51 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
+    <Style src="LocalAIStyles.uss" />
+    <ui:VisualElement name="root" class="root">
+        <!-- Header -->
+        <ui:VisualElement name="header-container" class="header">
+            <ui:VisualElement name="status-dot" class="status-indicator" />
+            <ui:Label name="model-label" text="Checking Model..." class="header-title" />
+            <ui:Button name="btn-settings" text="Settings" />
+        </ui:VisualElement>
+
+        <ui:VisualElement name="settings-container" style="flex-grow: 1; display: none; background-color: #282828; padding: 20px;">
+            <ui:Label text="Settings" class="section-title" style="font-size: 16px; margin-bottom: 20px;" />
+            
+            <ui:TextField name="field-model-path" label="Model Storage Path" readonly="true" style="margin-bottom: 10px;" />
+            <ui:Toggle name="toggle-gpu" label="Enable GPU Acceleration (Metal/CUDA)" value="true" style="margin-bottom: 20px;" />
+            
+            <ui:Button name="btn-delete-model" text="Delete Model" style="background-color: #8B0000; width: 150px; margin-bottom: 20px;" />
+            
+            <ui:Button name="btn-close-settings" text="Back" style="width: 100px; align-self: flex-end;" />
+        </ui:VisualElement>
+
+        <!-- Main Content (Swapped for Download View if needed) -->
+        <ui:VisualElement name="content-container" style="flex-grow: 1;">
+            <ui:VisualElement name="main-split" class="main-split">
+                <!-- Context View -->
+                <ui:VisualElement name="context-container" class="context-view">
+                     <ui:Label text="Context" class="section-title" />
+                     <ui:ScrollView name="context-scroll">
+                        <ui:Label name="context-text" text="No context selected." style="white-space: normal;" />
+                     </ui:ScrollView>
+                </ui:VisualElement>
+
+                <!-- Response View -->
+                <ui:VisualElement name="response-container" class="response-view">
+                    <ui:Label text="Response" class="section-title" />
+                    <ui:ScrollView name="response-scroll">
+                        <ui:Label name="response-text" text="Ready." style="white-space: normal; font-size: 13px;" />
+                    </ui:ScrollView>
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <!-- Action Bar -->
+        <ui:VisualElement name="action-bar-container" class="action-bar">
+             <ui:Button name="btn-explain-error" text="Explain Error" />
+             <ui:Button name="btn-explain-code" text="Explain Code" />
+             <ui:Button name="btn-generate" text="Generate" />
+             <ui:Button name="btn-cancel" text="Stop" style="display: none; background-color: #8B0000;" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>
