@@ -8,6 +8,12 @@
 > **Privacy-focused, offline AI coding assistant running directly inside Unity Editor.**
 
 ---
+## UI
+<img src="https://github.com/user-attachments/assets/f78e7980-463b-4fc9-a8f8-c913449d62be" width="160" />
+<img src="https://github.com/user-attachments/assets/42d2065b-c31a-4562-94c8-f725cf47ddcd" width="160" />
+<img src="https://github.com/user-attachments/assets/b33dab62-5e02-4382-83bb-374408d4c840" width="160" />
+<img src="https://github.com/user-attachments/assets/1665d517-6c27-4af2-be72-e565889bc667" width="160" />
+
 
 ## Features
 
