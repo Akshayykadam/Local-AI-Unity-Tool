@@ -1,98 +1,208 @@
-/* LocalAIStyles.uss */
+/* LocalAIStyles.uss - Unity Editor Native Style */
 
 .root {
     flex-grow: 1;
-    background-color: #282828;
+    background-color: #383838;
 }
 
-/* Header */
+/* Header - matches Unity toolbar */
 .header {
-    height: 40px;
-    background-color: #3C3C3C;
+    height: 22px;
+    background-color: #3c3c3c;
     flex-direction: row;
     align-items: center;
-    padding-left: 10px;
-    padding-right: 10px;
+    padding-left: 8px;
+    padding-right: 4px;
     border-bottom-width: 1px;
-    border-bottom-color: #202020;
+    border-bottom-color: #232323;
 }
 
 .status-indicator {
-    width: 6px;
-    height: 6px;
-    border-radius: 3px;
-    background-color: #808080;
+    width: 8px;
+    height: 8px;
+    border-radius: 4px;
+    background-color: #666666;
     margin-right: 6px;
 }
 
-.status-indicator.downloading { background-color: #FFC107; }
-.status-indicator.ready { background-color: #4CAF50; }
-.status-indicator.error { background-color: #F44336; }
+.status-indicator.downloading { background-color: #f4bc02; }
+.status-indicator.ready { background-color: #8dc63f; }
+.status-indicator.error { background-color: #cf3a3a; }
 
 .header-title {
-    -unity-font-style: bold;
     font-size: 12px;
-    color: #E0E0E0;
+    color: #c4c4c4;
     flex-grow: 1;
+    -unity-font-style: normal;
 }
 
-/* Split View */
-.main-split {
+.header-btn {
+    height: 18px;
+    font-size: 11px;
+    padding: 2px 8px;
+    margin: 0;
+}
+
+/* Content Area */
+.content-wrapper {
     flex-grow: 1;
-    flex-direction: row;
+    flex-direction: column;
+    padding: 4px;
 }
 
-.context-view {
-    width: 250px;
-    min-width: 200px;
-    border-right-width: 1px;
-    border-right-color: #202020;
-    background-color: #2D2D2D;
+/* Panels - Unity Inspector style */
+.panel {
+    background-color: #3c3c3c;
+    border-radius: 3px;
+    margin-bottom: 4px;
+    border-width: 1px;
+    border-color: #232323;
 }
 
-.response-view {
-    flex-grow: 1;
-    background-color: #1E1E1E;
-    padding: 10px;
-}
-
-/* Action Bar */
-.action-bar {
-    height: 40px;
-    background-color: #3C3C3C;
-    flex-direction: row;
-    align-items: center;
-    justify-content: flex-end;
-    padding-right: 10px;
-    border-top-width: 1px;
-    border-top-color: #202020;
-}
-
-/* Common */
-.section-title {
+.panel-title {
+    font-size: 12px;
+    color: #c4c4c4;
     -unity-font-style: bold;
-    color: #AAAAAA;
-    margin: 5px;
-    padding-bottom: 5px;
+    padding: 4px 8px;
+    background-color: #333333;
     border-bottom-width: 1px;
-    border-bottom-color: #404040;
+    border-bottom-color: #232323;
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
 }
 
+/* Response Panel */
+.response-panel {
+    flex-grow: 1;
+    min-height: 150px;
+}
+
+.scroll-area {
+    flex-grow: 1;
+    padding: 6px 8px;
+}
+
+.response-text {
+    font-size: 12px;
+    color: #b4b4b4;
+    white-space: normal;
+}
+
+/* Context Panel */
+.context-panel {
+    max-height: 200px;
+    min-height: 120px;
+}
+
+.context-text {
+    font-size: 11px;
+    color: #888888;
+    white-space: normal;
+}
+
+/* Action Bar - Unity button style */
+.action-bar {
+    flex-direction: row;
+    padding: 4px 0;
+    margin-bottom: 4px;
+}
+
+.action-btn {
+    flex-grow: 1;
+    height: 22px;
+    margin: 0 2px;
+    font-size: 11px;
+}
+
+.cancel-btn {
+    background-color: #5a3535;
+}
+
+.cancel-btn:hover {
+    background-color: #6a4545;
+}
+
+/* Settings Panel */
+.settings-panel {
+    flex-grow: 1;
+    display: none;
+    background-color: #383838;
+    padding: 8px;
+}
+
+.settings-group {
+    margin-bottom: 12px;
+}
+
+.field-label {
+    font-size: 11px;
+    color: #888888;
+    margin-bottom: 4px;
+}
+
+.settings-footer {
+    flex-direction: row;
+    margin-top: 16px;
+    padding-top: 8px;
+    border-top-width: 1px;
+    border-top-color: #232323;
+}
+
+.danger-btn {
+    background-color: #5a3535;
+    color: #d4d4d4;
+}
+
+.danger-btn:hover {
+    background-color: #6a4545;
+}
+
+/* Unity Default Element Styling */
 Label {
-    color: #C0C0C0;
+    color: #c4c4c4;
+    font-size: 12px;
 }
 
 Button {
-    background-color: #444444;
-    border-width: 0;
-    border-radius: 2px;
-    color: #E0E0E0;
+    background-color: #585858;
+    border-width: 1px;
+    border-color: #232323;
+    border-radius: 3px;
+    color: #e4e4e4;
+    padding: 2px 6px;
+    font-size: 11px;
 }
 
 Button:hover {
-    background-color: #555555;
+    background-color: #656565;
 }
 
 Button:active {
-    background-color: #222222;
+    background-color: #505050;
+}
+
+TextField {
+    background-color: #2a2a2a;
+    border-radius: 3px;
+    border-width: 1px;
+    border-color: #0d0d0d;
+    font-size: 11px;
+}
+
+TextField:focus {
+    border-color: #3a79bb;
+}
+
+Toggle {
+    color: #c4c4c4;
+    font-size: 12px;
+}
+
+ScrollView {
+    background-color: transparent;
+}
+
+/* Scrollbar styling */
+Scroller {
+    width: 12px;
 }

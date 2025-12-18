@@ -32,13 +32,13 @@ namespace LocalAI.Editor.Services
         {
             Id = "mistral-7b-q4",
             Version = "1.0.0",
-            DownloadUrl = "https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.1-GGUF/resolve/main/mistral-7b-instruct-v0.1.Q4_K_M.gguf",
+            DownloadUrl = "https://hf-mirror.com/TheBloke/Mistral-7B-Instruct-v0.1-GGUF/resolve/main/mistral-7b-instruct-v0.1.Q4_K_M.gguf",
             ExpectedChecksum = "INVALID_PLACEHOLDER", // Fill with real hash if known or ignore for proto
             SizeBytes = 4368438272 // Approx
         };
 
         public event Action<ModelState> OnStateChanged;
-        public event Action<float> OnDownloadProgress;
+        public event Action<DownloadProgress> OnDownloadProgress;
 
         public ModelState CurrentState { get; private set; } = ModelState.NotInstalled;
         public string ErrorMessage { get; private set; }
@@ -90,7 +90,7 @@ namespace LocalAI.Editor.Services
             SetState(ModelState.Downloading);
             _downloadCts = new CancellationTokenSource();
 
-            var progress = new Progress<float>(p => OnDownloadProgress?.Invoke(p));
+            var progress = new Progress<DownloadProgress>(p => OnDownloadProgress?.Invoke(p));
             string finalPath = GetModelPath();
 
             bool success = await _downloadService.DownloadFileAsync(DefaultModel.DownloadUrl, finalPath, progress, _downloadCts.Token);

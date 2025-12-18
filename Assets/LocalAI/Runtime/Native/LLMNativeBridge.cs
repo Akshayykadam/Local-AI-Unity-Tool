@@ -97,45 +97,136 @@ namespace LocalAI.Runtime.Native
 
         #region Context
         
-        public static IntPtr CreateContextSafe(IntPtr model, uint n_ctx = 2048, int n_threads = 4)
+        public static IntPtr CreateContextSafe(IntPtr model, uint n_ctx = 512, int n_threads = 4)
         {
-            // Same approach: allocate zeroed struct
-            int structSize = 160; // llama_context_params is larger
-            IntPtr paramsPtr = Marshal.AllocHGlobal(structSize);
+            Debug.Log($"[LocalAI] CreateContextSafe called with n_ctx={n_ctx}, n_threads={n_threads}");
             
-            try
+            // Use unsafe fixed buffer struct - properly blittable for ARM64
+            NativeLlamaContextParams lparams = new NativeLlamaContextParams();
+            
+            // Manually initialize ALL known fields to valid defaults based on llama.h
+            // IMPORTANT: There is NO seed field in llama_context_params!
+            unsafe
             {
-                for (int i = 0; i < structSize; i++)
-                {
-                    Marshal.WriteByte(paramsPtr, i, 0);
-                }
+                // Zero out the entire buffer first
+                for (int i = 0; i < 256; i++) lparams.data[i] = 0;
                 
-                // n_ctx at offset 0
-                Marshal.WriteInt32(paramsPtr, 0, (int)n_ctx);
-                // n_batch at offset 4
-                Marshal.WriteInt32(paramsPtr, 4, 512);
-                // n_ubatch at offset 8
-                Marshal.WriteInt32(paramsPtr, 8, 512);
-                // n_seq_max at offset 12
-                Marshal.WriteInt32(paramsPtr, 12, 1);
-                // n_threads at offset 16
-                Marshal.WriteInt32(paramsPtr, 16, n_threads);
-                // n_threads_batch at offset 20
-                Marshal.WriteInt32(paramsPtr, 20, n_threads);
+                // Struct layout from llama.h (no seed field!):
+                // uint32_t n_ctx;             // offset 0
+                // uint32_t n_batch;           // offset 4
+                // uint32_t n_ubatch;          // offset 8
+                // uint32_t n_seq_max;         // offset 12
+                // int32_t  n_threads;         // offset 16
+                // int32_t  n_threads_batch;   // offset 20
                 
-                return llama_new_context_with_model_raw(model, paramsPtr);
+                WriteUInt32(lparams.data, 0, n_ctx);        // n_ctx
+                WriteUInt32(lparams.data, 4, 512);          // n_batch
+                WriteUInt32(lparams.data, 8, 512);          // n_ubatch  
+                WriteUInt32(lparams.data, 12, 1);           // n_seq_max
+                WriteInt32(lparams.data, 16, n_threads);    // n_threads
+                WriteInt32(lparams.data, 20, n_threads);    // n_threads_batch
+                
+                // enum rope_scaling_type;     // offset 24 (4 bytes)
+                // enum pooling_type;          // offset 28 (4 bytes)
+                // enum attention_type;        // offset 32 (4 bytes)
+                // enum flash_attn_type;       // offset 36 (4 bytes)
+                WriteInt32(lparams.data, 24, -1);  // LLAMA_ROPE_SCALING_TYPE_UNSPECIFIED
+                WriteInt32(lparams.data, 28, -1);  // LLAMA_POOLING_TYPE_UNSPECIFIED
+                WriteInt32(lparams.data, 32, -1);  // LLAMA_ATTENTION_TYPE_UNSPECIFIED
+                WriteInt32(lparams.data, 36, 0);   // LLAMA_FLASH_ATTN_TYPE_NONE
+                
+                // float rope_freq_base;       // offset 40
+                // float rope_freq_scale;      // offset 44
+                // float yarn_ext_factor;      // offset 48
+                // float yarn_attn_factor;     // offset 52
+                // float yarn_beta_fast;       // offset 56
+                // float yarn_beta_slow;       // offset 60
+                // uint32_t yarn_orig_ctx;     // offset 64
+                // float defrag_thold;         // offset 68
+                WriteFloat(lparams.data, 40, 0.0f);   // rope_freq_base (0 = from model)
+                WriteFloat(lparams.data, 44, 0.0f);   // rope_freq_scale (0 = from model)
+                WriteFloat(lparams.data, 48, -1.0f);  // yarn_ext_factor (-1 = from model)
+                WriteFloat(lparams.data, 52, 1.0f);   // yarn_attn_factor
+                WriteFloat(lparams.data, 56, 32.0f);  // yarn_beta_fast
+                WriteFloat(lparams.data, 60, 1.0f);   // yarn_beta_slow
+                WriteUInt32(lparams.data, 64, 0);     // yarn_orig_ctx
+                WriteFloat(lparams.data, 68, -1.0f);  // defrag_thold (disabled)
+                
+                // ggml_backend_sched_eval_callback cb_eval; // offset 72 (8 bytes pointer on ARM64)
+                // void * cb_eval_user_data;                  // offset 80 (8 bytes pointer)
+                // Already zeros (NULL pointers)
+                
+                // enum ggml_type type_k;      // offset 88 (4 bytes)
+                // enum ggml_type type_v;      // offset 92 (4 bytes)
+                WriteInt32(lparams.data, 88, 1);  // GGML_TYPE_F16
+                WriteInt32(lparams.data, 92, 1);  // GGML_TYPE_F16
+                
+                // ggml_abort_callback abort_callback; // offset 96 (8 bytes pointer)
+                // void * abort_callback_data;         // offset 104 (8 bytes pointer)
+                // Already zeros (NULL pointers)
+                
+                // Booleans at end (starting offset 112):
+                // bool embeddings;   // offset 112
+                // bool offload_kqv;  // offset 113
+                // bool no_perf;      // offset 114
+                // bool op_offload;   // offset 115
+                // bool swa_full;     // offset 116
+                // bool kv_unified;   // offset 117
+                lparams.data[112] = 0; // embeddings = false
+                lparams.data[113] = 1; // offload_kqv = true (use GPU if available)
+                lparams.data[114] = 1; // no_perf = true (skip perf measurements)
+                lparams.data[115] = 1; // op_offload = true (offload ops to device)
+                lparams.data[116] = 1; // swa_full = true
+                lparams.data[117] = 1; // kv_unified = true
             }
-            finally
-            {
-                Marshal.FreeHGlobal(paramsPtr);
-            }
+            
+            Debug.Log($"[LocalAI] Calling llama_new_context_with_model...");
+            
+            // Pass BY VALUE - the marshaler will handle copying the fixed buffer
+            IntPtr result = llama_new_context_with_model(model, lparams);
+            
+            Debug.Log($"[LocalAI] llama_new_context_with_model returned: 0x{result.ToString("X")}");
+            
+            return result;
         }
 
-        [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl, EntryPoint = "llama_new_context_with_model")]
-        private static extern IntPtr llama_new_context_with_model_raw(IntPtr model, IntPtr params_ptr);
+        private static unsafe void WriteUInt32(byte* buffer, int offset, uint value)
+        {
+            buffer[offset] = (byte)(value & 0xFF);
+            buffer[offset + 1] = (byte)((value >> 8) & 0xFF);
+            buffer[offset + 2] = (byte)((value >> 16) & 0xFF);
+            buffer[offset + 3] = (byte)((value >> 24) & 0xFF);
+        }
+        
+        private static unsafe void WriteInt32(byte* buffer, int offset, int value)
+        {
+            WriteUInt32(buffer, offset, (uint)value);
+        }
+        
+        private static unsafe void WriteFloat(byte* buffer, int offset, float value)
+        {
+            byte[] bytes = BitConverter.GetBytes(value);
+            buffer[offset] = bytes[0];
+            buffer[offset + 1] = bytes[1];
+            buffer[offset + 2] = bytes[2];
+            buffer[offset + 3] = bytes[3];
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public unsafe struct NativeLlamaContextParams
+        {
+            // Fixed size buffer - truly blittable, no managed array
+            public fixed byte data[256];
+        }
+
+        [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr llama_new_context_with_model(IntPtr model, NativeLlamaContextParams params_struct);
 
         [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
         public static extern void llama_free(IntPtr ctx);
+        
+        [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void llama_kv_cache_clear(IntPtr ctx);
 
         #endregion
 
@@ -179,8 +270,23 @@ namespace LocalAI.Runtime.Native
         // Instead of manipulating llama_batch struct directly, we use the "get_one" helper
         // or manually allocate arrays and build batch in unmanaged memory.
         
+        [StructLayout(LayoutKind.Sequential)]
+        public struct NativeLlamaBatch
+        {
+            public int n_tokens;
+            public IntPtr token;
+            public IntPtr embd;
+            public IntPtr pos;
+            public IntPtr n_seq_id;
+            public IntPtr seq_id;
+            public IntPtr logits;
+            public int all_pos_0;
+            public int all_pos_1;
+            public int all_seq_id;
+        }
+
         [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int llama_decode(IntPtr ctx, IntPtr batch_ptr);
+        public static extern int llama_decode(IntPtr ctx, NativeLlamaBatch batch);
 
         // Helper to create a batch struct in unmanaged memory
         // llama_batch layout (approximately):
@@ -193,7 +299,7 @@ namespace LocalAI.Runtime.Native
         // ptr logits
         // Plus some int fields for defaults
         
-        public static IntPtr CreateBatch(int[] tokens, int[] positions, bool[] computeLogits)
+        public static NativeLlamaBatch CreateBatch(int[] tokens, int[] positions, bool[] computeLogits)
         {
             int n = tokens.Length;
             
@@ -231,63 +337,36 @@ namespace LocalAI.Runtime.Native
             }
             Marshal.Copy(logitsByte, 0, logitsPtr, n);
             
-            // Now build the batch struct
-            // Struct size estimate: ~64 bytes
-            int batchStructSize = 64;
-            IntPtr batchPtr = Marshal.AllocHGlobal(batchStructSize);
+            // Create struct
+            NativeLlamaBatch batch = new NativeLlamaBatch();
+            batch.n_tokens = n;
+            batch.token = tokenPtr;
+            batch.embd = IntPtr.Zero;
+            batch.pos = posPtr;
+            batch.n_seq_id = nSeqIdPtr;
+            batch.seq_id = seqIdPtr;
+            batch.logits = logitsPtr;
+            batch.all_pos_0 = 0;
+            batch.all_pos_1 = 0;
+            batch.all_seq_id = 0;
             
-            int offset = 0;
-            Marshal.WriteInt32(batchPtr, offset, n); offset += 4; // n_tokens
-            // Padding for alignment on 64-bit
-            if (IntPtr.Size == 8) offset += 4;
-            
-            Marshal.WriteIntPtr(batchPtr, offset, tokenPtr); offset += IntPtr.Size;
-            Marshal.WriteIntPtr(batchPtr, offset, IntPtr.Zero); offset += IntPtr.Size; // embd (null)
-            Marshal.WriteIntPtr(batchPtr, offset, posPtr); offset += IntPtr.Size;
-            Marshal.WriteIntPtr(batchPtr, offset, nSeqIdPtr); offset += IntPtr.Size;
-            Marshal.WriteIntPtr(batchPtr, offset, seqIdPtr); offset += IntPtr.Size;
-            Marshal.WriteIntPtr(batchPtr, offset, logitsPtr); offset += IntPtr.Size;
-            
-            // all_pos_0, all_pos_1, all_seq_id (defaults)
-            Marshal.WriteInt32(batchPtr, offset, 0); offset += 4;
-            Marshal.WriteInt32(batchPtr, offset, 0); offset += 4;
-            Marshal.WriteInt32(batchPtr, offset, 0); offset += 4;
-            
-            // Store allocation info for cleanup (hacky: store at end of struct)
-            // Actually, we'll track externally. Return batch and caller frees.
-            
-            return batchPtr;
+            return batch;
         }
         
-        public static void FreeBatch(IntPtr batchPtr)
+        public static void FreeBatch(NativeLlamaBatch batch)
         {
-            if (batchPtr == IntPtr.Zero) return;
-            
-            // Read pointers and free them
-            int offset = 4;
-            if (IntPtr.Size == 8) offset += 4;
-            
-            IntPtr tokenPtr = Marshal.ReadIntPtr(batchPtr, offset); offset += IntPtr.Size;
-            offset += IntPtr.Size; // skip embd
-            IntPtr posPtr = Marshal.ReadIntPtr(batchPtr, offset); offset += IntPtr.Size;
-            IntPtr nSeqIdPtr = Marshal.ReadIntPtr(batchPtr, offset); offset += IntPtr.Size;
-            IntPtr seqIdPtr = Marshal.ReadIntPtr(batchPtr, offset); offset += IntPtr.Size;
-            IntPtr logitsPtr = Marshal.ReadIntPtr(batchPtr, offset);
-            
             // Free the seq_id data (first entry points to start)
-            if (seqIdPtr != IntPtr.Zero)
+            if (batch.seq_id != IntPtr.Zero)
             {
-                IntPtr seqIdData = Marshal.ReadIntPtr(seqIdPtr, 0);
+                IntPtr seqIdData = Marshal.ReadIntPtr(batch.seq_id, 0);
                 if (seqIdData != IntPtr.Zero) Marshal.FreeHGlobal(seqIdData);
-                Marshal.FreeHGlobal(seqIdPtr);
+                Marshal.FreeHGlobal(batch.seq_id);
             }
             
-            if (tokenPtr != IntPtr.Zero) Marshal.FreeHGlobal(tokenPtr);
-            if (posPtr != IntPtr.Zero) Marshal.FreeHGlobal(posPtr);
-            if (nSeqIdPtr != IntPtr.Zero) Marshal.FreeHGlobal(nSeqIdPtr);
-            if (logitsPtr != IntPtr.Zero) Marshal.FreeHGlobal(logitsPtr);
-            
-            Marshal.FreeHGlobal(batchPtr);
+            if (batch.token != IntPtr.Zero) Marshal.FreeHGlobal(batch.token);
+            if (batch.pos != IntPtr.Zero) Marshal.FreeHGlobal(batch.pos);
+            if (batch.n_seq_id != IntPtr.Zero) Marshal.FreeHGlobal(batch.n_seq_id);
+            if (batch.logits != IntPtr.Zero) Marshal.FreeHGlobal(batch.logits);
         }
 
         #endregion

@@ -35,12 +35,16 @@ namespace LocalAI.Editor.UI
             UpdateUI(state);
         }
 
-        private void OnDownloadProgress(float progress)
+        private void OnDownloadProgress(DownloadProgress progress)
         {
-             if (_modelManager.CurrentState == ModelManager.ModelState.Downloading)
-             {
-                 _modelLabel.text = $"Downloading... {progress:P0}";
-             }
+            // Marshal to main thread for UI update
+            UnityEditor.EditorApplication.delayCall += () =>
+            {
+                if (_modelManager.CurrentState == ModelManager.ModelState.Downloading)
+                {
+                    _modelLabel.text = progress.GetDisplayText();
+                }
+            };
         }
 
         private void UpdateUI(ModelManager.ModelState state)

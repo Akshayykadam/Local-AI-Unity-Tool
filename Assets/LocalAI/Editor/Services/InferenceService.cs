@@ -15,6 +15,10 @@ namespace LocalAI.Editor.Services
         private IntPtr _vocab = IntPtr.Zero;
         private int _vocabSize = 0;
         private int _eosToken = -1;
+        
+        // Cached settings (must be read on main thread)
+        private uint _cachedContextSize;
+        private int _cachedMaxTokens;
 
         public async Task StartInferenceAsync(string prompt, string modelPath, IProgress<string> progress, CancellationToken token)
         {
@@ -25,6 +29,10 @@ namespace LocalAI.Editor.Services
             }
             
             _isGenerating = true;
+            
+            // Cache settings on main thread BEFORE starting background task
+            _cachedContextSize = LocalAISettings.ContextSize;
+            _cachedMaxTokens = LocalAISettings.MaxTokens;
 
             await Task.Run(() =>
             {
@@ -34,6 +42,13 @@ namespace LocalAI.Editor.Services
                     if (!Initialize(modelPath))
                     {
                         progress?.Report("[Error] Failed to initialize model.\n");
+                        return;
+                    }
+                    
+                    // 1.5 Recreate context for fresh inference (frees old KV cache)
+                    if (!RecreateContext())
+                    {
+                        progress?.Report("[Error] Failed to recreate context.\n");
                         return;
                     }
 
@@ -56,7 +71,7 @@ namespace LocalAI.Editor.Services
                         logits[i] = (i == tokens.Length - 1); // Only compute logits for last token
                     }
 
-                    IntPtr batch = LLMNativeBridge.CreateBatch(tokens, positions, logits);
+                    LLMNativeBridge.NativeLlamaBatch batch = LLMNativeBridge.CreateBatch(tokens, positions, logits);
                     int decodeResult = LLMNativeBridge.llama_decode(_ctx, batch);
                     LLMNativeBridge.FreeBatch(batch);
 
@@ -69,7 +84,7 @@ namespace LocalAI.Editor.Services
                     int nPast = tokens.Length;
 
                     // 4. Generation Loop
-                    int maxTokens = 256;
+                    int maxTokens = _cachedMaxTokens;
                     for (int i = 0; i < maxTokens; i++)
                     {
                         if (token.IsCancellationRequested)
@@ -104,6 +119,9 @@ namespace LocalAI.Editor.Services
                             break;
                         }
 
+                        // Debug Output
+                        Debug.Log($"[LocalAI] Token: {nextToken}, MaxLogit: {maxVal}, Piece: '{TokenToPiece(nextToken)}'");
+
                         // Detokenize & Report
                         string piece = TokenToPiece(nextToken);
                         progress?.Report(piece);
@@ -113,7 +131,7 @@ namespace LocalAI.Editor.Services
                         int[] nextPositions = new int[] { nPast };
                         bool[] nextLogits = new bool[] { true };
 
-                        IntPtr nextBatch = LLMNativeBridge.CreateBatch(nextTokens, nextPositions, nextLogits);
+                        LLMNativeBridge.NativeLlamaBatch nextBatch = LLMNativeBridge.CreateBatch(nextTokens, nextPositions, nextLogits);
                         int result = LLMNativeBridge.llama_decode(_ctx, nextBatch);
                         LLMNativeBridge.FreeBatch(nextBatch);
 
@@ -166,7 +184,8 @@ namespace LocalAI.Editor.Services
                 Debug.Log($"[LocalAI] Vocab size: {_vocabSize}, EOS token: {_eosToken}");
 
                 int threads = Math.Max(1, Environment.ProcessorCount / 2);
-                _ctx = LLMNativeBridge.CreateContextSafe(_model, 2048, threads);
+                Debug.Log($"[LocalAI] Creating context with {threads} threads...");
+                _ctx = LLMNativeBridge.CreateContextSafe(_model, _cachedContextSize, threads);
 
                 if (_ctx == IntPtr.Zero)
                 {
@@ -180,6 +199,30 @@ namespace LocalAI.Editor.Services
             catch (Exception ex)
             {
                 Debug.LogError($"[LocalAI] Initialize error: {ex.Message}");
+                return false;
+            }
+        }
+        
+        private bool RecreateContext()
+        {
+            try
+            {
+                // Free old context if exists
+                if (_ctx != IntPtr.Zero)
+                {
+                    LLMNativeBridge.llama_free(_ctx);
+                    _ctx = IntPtr.Zero;
+                }
+                
+                // Create fresh context
+                int threads = Math.Max(1, Environment.ProcessorCount / 2);
+                _ctx = LLMNativeBridge.CreateContextSafe(_model, _cachedContextSize, threads);
+                
+                return _ctx != IntPtr.Zero;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[LocalAI] RecreateContext error: {ex.Message}");
                 return false;
             }
         }

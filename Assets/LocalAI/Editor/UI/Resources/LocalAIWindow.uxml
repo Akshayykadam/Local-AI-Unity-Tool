@@ -5,47 +5,54 @@
         <ui:VisualElement name="header-container" class="header">
             <ui:VisualElement name="status-dot" class="status-indicator" />
             <ui:Label name="model-label" text="Checking Model..." class="header-title" />
-            <ui:Button name="btn-settings" text="Settings" />
+            <ui:Button name="btn-settings" text="Settings" class="header-btn" />
         </ui:VisualElement>
 
-        <ui:VisualElement name="settings-container" style="flex-grow: 1; display: none; background-color: #282828; padding: 20px;">
-            <ui:Label text="Settings" class="section-title" style="font-size: 16px; margin-bottom: 20px;" />
+        <!-- Settings Panel -->
+        <ui:VisualElement name="settings-container" class="settings-panel">
+            <ui:Label text="Settings" class="panel-title" />
             
-            <ui:TextField name="field-model-path" label="Model Storage Path" readonly="true" style="margin-bottom: 10px;" />
-            <ui:Toggle name="toggle-gpu" label="Enable GPU Acceleration (Metal/CUDA)" value="true" style="margin-bottom: 20px;" />
+            <ui:VisualElement class="settings-group">
+                <ui:Label text="Model Storage Path" class="field-label" />
+                <ui:TextField name="field-model-path" readonly="true" />
+            </ui:VisualElement>
             
-            <ui:Button name="btn-delete-model" text="Delete Model" style="background-color: #8B0000; width: 150px; margin-bottom: 20px;" />
+            <ui:VisualElement class="settings-group">
+                <ui:Toggle name="toggle-gpu" label="Enable GPU Acceleration (Metal)" value="true" />
+            </ui:VisualElement>
             
-            <ui:Button name="btn-close-settings" text="Back" style="width: 100px; align-self: flex-end;" />
-        </ui:VisualElement>
-
-        <!-- Main Content (Swapped for Download View if needed) -->
-        <ui:VisualElement name="content-container" style="flex-grow: 1;">
-            <ui:VisualElement name="main-split" class="main-split">
-                <!-- Context View -->
-                <ui:VisualElement name="context-container" class="context-view">
-                     <ui:Label text="Context" class="section-title" />
-                     <ui:ScrollView name="context-scroll">
-                        <ui:Label name="context-text" text="No context selected." style="white-space: normal;" />
-                     </ui:ScrollView>
-                </ui:VisualElement>
-
-                <!-- Response View -->
-                <ui:VisualElement name="response-container" class="response-view">
-                    <ui:Label text="Response" class="section-title" />
-                    <ui:ScrollView name="response-scroll">
-                        <ui:Label name="response-text" text="Ready." style="white-space: normal; font-size: 13px;" />
-                    </ui:ScrollView>
-                </ui:VisualElement>
+            <ui:VisualElement class="settings-footer">
+                <ui:Button name="btn-delete-model" text="Delete Model" class="danger-btn" />
+                <ui:VisualElement style="flex-grow: 1;" />
+                <ui:Button name="btn-close-settings" text="Close" />
             </ui:VisualElement>
         </ui:VisualElement>
 
-        <!-- Action Bar -->
-        <ui:VisualElement name="action-bar-container" class="action-bar">
-             <ui:Button name="btn-explain-error" text="Explain Error" />
-             <ui:Button name="btn-explain-code" text="Explain Code" />
-             <ui:Button name="btn-generate" text="Generate" />
-             <ui:Button name="btn-cancel" text="Stop" style="display: none; background-color: #8B0000;" />
+        <!-- Main Content -->
+        <ui:VisualElement name="content-container" class="content-wrapper">
+            <!-- Response View -->
+            <ui:VisualElement name="response-container" class="panel response-panel">
+                <ui:Label text="Response" class="panel-title" />
+                <ui:ScrollView name="response-scroll" class="scroll-area">
+                    <ui:Label name="response-text" text="Select code and click an action below." class="response-text" />
+                </ui:ScrollView>
+            </ui:VisualElement>
+
+            <!-- Action Bar -->
+            <ui:VisualElement name="action-bar-container" class="action-bar">
+                 <ui:Button name="btn-explain-error" text="Explain Error" class="action-btn" />
+                 <ui:Button name="btn-explain-code" text="Explain Code" class="action-btn" />
+                 <ui:Button name="btn-generate" text="Generate" class="action-btn" />
+                 <ui:Button name="btn-cancel" text="Cancel" class="action-btn cancel-btn" style="display: none;" />
+            </ui:VisualElement>
+
+            <!-- Context Panel -->
+            <ui:VisualElement name="context-container" class="panel context-panel">
+                 <ui:Label text="Context" class="panel-title" />
+                 <ui:ScrollView name="context-scroll" class="scroll-area">
+                    <ui:Label name="context-text" text="No context selected." class="context-text" />
+                 </ui:ScrollView>
+            </ui:VisualElement>
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

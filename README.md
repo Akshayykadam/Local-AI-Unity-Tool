@@ -1,68 +1,72 @@
-# 🧠 Local AI Assistant `(Unity Tool)`
+# Local AI Assistant for Unity
 
 ![Unity Version](https://img.shields.io/badge/Unity-2021.3%2B-000000?style=flat-square&logo=unity)
 ![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)
 ![Platform](https://img.shields.io/badge/Platform-macOS%20%7C%20Windows-lightgrey?style=flat-square)
-![Status](https://img.shields.io/badge/Status-Working%20Prototype-brightgreen?style=flat-square)
+![Status](https://img.shields.io/badge/Status-Working-brightgreen?style=flat-square)
 
-> **"Privacy-focused, offline AI coding companion living directly inside your Unity Editor."**
-
----
-
-## 📖 The Story
-
-I built this tool because I wanted a smart assistant to help with my Unity projects—answering code questions, explaining exceptions, and brainstorming mechanics—**without** sending my proprietary code to the cloud or burning through API credits.
-
-It runs a quantization-optimized mid-tier LLM (**Mistral 7B**) locally on your machine using `llama.cpp`. No internet required. No data leaks. Just you and your AI.
+> **Privacy-focused, offline AI coding assistant running directly inside Unity Editor.**
 
 ---
 
-## ✨ Key Features
+## Features
 
 | Feature | Description |
 | :--- | :--- |
-| 🛡️ **100% Private** | Your project data never leaves `localhost`. |
-| 💸 **Free Forever** | Runs on your hardware (CPU / Metal / CUDA). |
-| 🧩 **Unity Native** | Built with **UI Toolkit** for a polished Editor look. |
-| ⚡ **Context Aware** | Reads your selected GameObject or Console errors. |
-| 🔒 **Safe Interop** | No `unsafe` code — uses managed marshalling for stability. |
+| **100% Private** | All processing happens locally. No data leaves your machine. |
+| **Free Forever** | Uses your hardware (CPU / Metal GPU). No API costs. |
+| **Unity Native UI** | Built with UI Toolkit, matches Unity Editor styling. |
+| **Context Aware** | Reads selected code, console errors, or manual input. |
+| **Configurable** | Adjust context size (1K-8K) and response length. |
+| **Multi-Query** | Run multiple queries without restarting Unity. |
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### 1. Install Native Libraries
 > **Tools → Local AI → Install Native Libraries**
 
-This downloads the pre-built `llama.cpp` binaries (~50MB) from the official GitHub release and places them in `Assets/LocalAI/Plugins/`.
+Downloads `llama.cpp` binaries (~50MB) to `Assets/LocalAI/Plugins/`.
 
-### 2. Download the AI Model
-> **Tools → Local AI Assistant → Download Model**
+### 2. Download AI Model
+> **Tools → Local AI Assistant → Settings → Download Model**
 
-Downloads **Mistral 7B Instruct (Q4_K_M)** (~4GB) to:
+Downloads **Mistral 7B Instruct (Q4_K_M)** (~4GB):
 - macOS: `~/Library/Application Support/LocalAIUnity/models/`
 - Windows: `%AppData%\LocalAIUnity\models\`
 
-### 3. Start Using
-1.  Select a **GameObject** in your scene.
-2.  Open **Tools → Local AI Assistant**.
-3.  Click **"Generate"** or **"Explain Code"**.
-4.  Watch the AI stream its response in real-time!
+### 3. Use the Assistant
+1. Open **Tools → Local AI Assistant**
+2. Select code in your editor, or enable **"Use Manual Input"** to paste code/errors
+3. Click **Explain Error**, **Explain Code**, or **Generate**
+4. Watch the AI response stream in real-time
 
 ---
 
-## 🛠️ Tech Stack
+## Settings
+
+Click **Settings** in the toolbar to configure:
+
+| Setting | Options | Description |
+| :--- | :--- | :--- |
+| **Context Size** | 1K, 2K, 4K, 8K | Larger = more code analyzed, more RAM |
+| **Max Response** | 128, 256, 512, 1024 | Maximum tokens the AI will generate |
+
+---
+
+## Tech Stack
 
 | Component | Technology |
 | :--- | :--- |
-| **UI** | Unity UI Toolkit (UXML / USS) |
-| **Backend** | C# with `Marshal`-based safe P/Invoke |
-| **Inference** | `llama.cpp` (b7423 release) |
-| **Model** | [Mistral-7B-Instruct-v0.1-GGUF](https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.1-GGUF) |
+| **UI** | Unity UI Toolkit (UXML/USS) |
+| **Backend** | C# with safe P/Invoke marshalling |
+| **Inference** | `llama.cpp` (ARM64/x64 native) |
+| **Model** | Mistral-7B-Instruct-v0.1-GGUF (Q4_K_M) |
 
 ---
 
-## � Project Structure
+## Project Structure
 
 ```
 Assets/LocalAI/
@@ -71,13 +75,14 @@ Assets/LocalAI/
 │   │   ├── ModelManager.cs          # Model state & download
 │   │   ├── ModelDownloadService.cs  # HTTP resume support
 │   │   ├── InferenceService.cs      # Token generation loop
-│   │   └── ContextCollector.cs      # Editor context gathering
+│   │   ├── ContextCollector.cs      # Editor context gathering
+│   │   └── LocalAISettings.cs       # User preferences
 │   ├── UI/
 │   │   ├── LocalAIEditorWindow.cs   # Main window
-│   │   ├── HeaderView.cs
-│   │   ├── ContextView.cs
-│   │   ├── ResponseView.cs
-│   │   └── ActionBarView.cs
+│   │   ├── SettingsView.cs          # Settings panel
+│   │   ├── ContextView.cs           # Context & manual input
+│   │   ├── ResponseView.cs          # AI response display
+│   │   └── ActionBarView.cs         # Action buttons
 │   └── Setup/
 │       └── NativeSetup.cs           # Binary installer
 ├── Runtime/
@@ -89,26 +94,27 @@ Assets/LocalAI/
 
 ---
 
-## 🔮 Roadmap
+## Requirements
 
-- [ ] **Sampler Options**: Add temperature, top-k, top-p controls.
-- [ ] **Chat History**: Persist context across sessions.
-- [ ] **Real-time Log Monitoring**: Auto-detect console errors.
-- [ ] **Agent Mode**: Let AI write files to your project (safely!).
-
----
-
-## ⚠️ Known Limitations
-
-- **First Load is Slow**: The 4GB model takes ~10-30 seconds to load into memory on first use.
-- **Memory Usage**: Requires ~6GB RAM during inference.
-- **Struct Compatibility**: The native bridge assumes `llama.cpp` release `b7423`. Other versions may have different struct layouts.
+- **Unity 2021.3** or later
+- **RAM**: 8GB minimum, 16GB recommended
+- **Disk**: ~5GB (model + libraries)
+- **macOS**: Apple Silicon (M1/M2/M3) or Intel
+- **Windows**: x64 with AVX2 support
 
 ---
 
-## 📜 License
+## Known Limitations
 
-MIT — Use it, modify it, ship it. Just don't blame me if the AI suggests deleting `System32`.
+- **First Load**: Model takes 10-30 seconds to load initially
+- **Memory**: Uses ~6GB RAM during inference
+- **Context Recreation**: Each query recreates context (adds ~100ms)
+
+---
+
+## License
+
+MIT — Use it, modify it, ship it.
 
 ---
 

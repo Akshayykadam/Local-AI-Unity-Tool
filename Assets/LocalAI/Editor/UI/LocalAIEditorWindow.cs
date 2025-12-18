@@ -46,7 +46,7 @@ namespace LocalAI.Editor.UI
             _settingsView = new SettingsView(rootVisualElement, _modelManager); // New
             _contextView = new ContextView(rootVisualElement, _contextCollector);
             _responseView = new ResponseView(rootVisualElement);
-            _actionBarView = new ActionBarView(rootVisualElement, _modelManager, _inferenceService, _contextCollector, _responseView);
+            _actionBarView = new ActionBarView(rootVisualElement, _modelManager, _inferenceService, _contextView, _responseView);
             
             // Wire up Header Settings Button
             var settingsBtn = rootVisualElement.Q<Button>("btn-settings");

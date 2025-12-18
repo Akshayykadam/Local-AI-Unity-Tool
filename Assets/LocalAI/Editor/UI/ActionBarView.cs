@@ -9,7 +9,7 @@ namespace LocalAI.Editor.UI
     {
         private readonly ModelManager _modelManager;
         private readonly InferenceService _inferenceService;
-        private readonly ContextCollector _contextCollector;
+        private readonly ContextView _contextView;
         private readonly ResponseView _responseView;
 
         private readonly Button _btnExplainError;
@@ -19,11 +19,11 @@ namespace LocalAI.Editor.UI
 
         private CancellationTokenSource _cts;
 
-        public ActionBarView(VisualElement root, ModelManager modelManager, InferenceService inferenceService, ContextCollector collector, ResponseView responseView)
+        public ActionBarView(VisualElement root, ModelManager modelManager, InferenceService inferenceService, ContextView contextView, ResponseView responseView)
         {
             _modelManager = modelManager;
             _inferenceService = inferenceService;
-            _contextCollector = collector;
+            _contextView = contextView;
             _responseView = responseView;
 
             _btnExplainError = root.Q<Button>("btn-explain-error");
@@ -79,8 +79,9 @@ namespace LocalAI.Editor.UI
              _btnCancel.style.display = DisplayStyle.Flex;
 
              _responseView.SetText("Thinking...\n");
-             string context = _contextCollector.CollectContext();
-             string fullPrompt = $"{prefix}\n\n{context}";
+             string context = _contextView.GetContext();
+             // Mistral Instruct Template: [INST] Instruction [/INST] (BOS added by tokenizer)
+             string fullPrompt = $"[INST] {prefix}\n\n{context} [/INST]";
 
              var progress = new System.Progress<string>(token => 
              {
