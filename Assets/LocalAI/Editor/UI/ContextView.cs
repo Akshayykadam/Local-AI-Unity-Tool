@@ -29,37 +29,46 @@ namespace LocalAI.Editor.UI
             
             // Toggle for manual input mode
             _useManualToggle = new Toggle("Use Manual Input");
-            _useManualToggle.value = false;
+            _useManualToggle.value = true;
             _useManualToggle.style.marginBottom = 6;
             manualSection.Add(_useManualToggle);
             
-            // Manual input text area - wrapped in ScrollView for scrolling
-            var inputScroll = new ScrollView();
-            inputScroll.style.minHeight = 100;
-            inputScroll.style.maxHeight = 150;
-            inputScroll.style.display = DisplayStyle.None;
-            inputScroll.style.backgroundColor = new Color(0.17f, 0.17f, 0.17f);
-            inputScroll.style.borderTopLeftRadius = 3;
-            inputScroll.style.borderTopRightRadius = 3;
-            inputScroll.style.borderBottomLeftRadius = 3;
-            inputScroll.style.borderBottomRightRadius = 3;
-            
+            // Manual input text area - full-size editable text box
             _manualInput = new TextField();
             _manualInput.multiline = true;
-            _manualInput.style.minHeight = 100;
+            _manualInput.style.flexGrow = 1;
+            _manualInput.style.minHeight = 120;
+            _manualInput.style.maxHeight = 200;
             _manualInput.style.whiteSpace = WhiteSpace.PreWrap;
             _manualInput.style.fontSize = 11;
+            _manualInput.style.backgroundColor = new Color(0.17f, 0.17f, 0.17f);
+            _manualInput.style.borderTopLeftRadius = 3;
+            _manualInput.style.borderTopRightRadius = 3;
+            _manualInput.style.borderBottomLeftRadius = 3;
+            _manualInput.style.borderBottomRightRadius = 3;
+            _manualInput.style.display = DisplayStyle.Flex;
             _manualInput.value = "// Paste code or error here...";
-            inputScroll.Add(_manualInput);
             
-            // Toggle callback to show/hide input scroll
+            // Make the text input element fill the entire area
+            _manualInput.RegisterCallback<GeometryChangedEvent>(evt => {
+                var textInput = _manualInput.Q<VisualElement>("unity-text-input");
+                if (textInput != null)
+                {
+                    textInput.style.flexGrow = 1;
+                    textInput.style.minHeight = 100;
+                    textInput.style.unityTextAlign = TextAnchor.UpperLeft;
+                }
+            });
+            
+            manualSection.Add(_manualInput);
+            
+            // Toggle callback to show/hide input
             _useManualToggle.RegisterValueChangedCallback(evt => {
-                inputScroll.style.display = evt.newValue ? DisplayStyle.Flex : DisplayStyle.None;
+                _manualInput.style.display = evt.newValue ? DisplayStyle.Flex : DisplayStyle.None;
                 if (_contextText != null)
                     _contextText.parent.style.display = evt.newValue ? DisplayStyle.None : DisplayStyle.Flex;
             });
             
-            manualSection.Add(inputScroll);
             _contextContainer.Add(manualSection);
         }
 

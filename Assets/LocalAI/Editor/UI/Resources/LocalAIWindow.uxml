@@ -49,7 +49,7 @@
             <!-- Context Panel -->
             <ui:VisualElement name="context-container" class="panel context-panel">
                  <ui:Label text="Context" class="panel-title" />
-                 <ui:ScrollView name="context-scroll" class="scroll-area">
+                 <ui:ScrollView name="context-scroll" class="scroll-area" style="display: none;">
                     <ui:Label name="context-text" text="No context selected." class="context-text" />
                  </ui:ScrollView>
             </ui:VisualElement>

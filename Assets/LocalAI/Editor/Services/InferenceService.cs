@@ -60,7 +60,7 @@ namespace LocalAI.Editor.Services
                         return;
                     }
 
-                    progress?.Report($"[Info] Tokenized {tokens.Length} tokens. Starting generation...\n\n");
+                    // Tokenization successful - start generation silently
 
                     // 3. Prefill (Prompt Processing)
                     int[] positions = new int[tokens.Length];
@@ -115,7 +115,7 @@ namespace LocalAI.Editor.Services
                         // Check EOS
                         if (nextToken == _eosToken)
                         {
-                            progress?.Report("\n[Done]");
+                            // End of sequence - stop silently
                             break;
                         }
 

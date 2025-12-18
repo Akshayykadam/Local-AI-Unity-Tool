@@ -78,10 +78,14 @@ namespace LocalAI.Editor.UI
              _btnGenerate.style.display = DisplayStyle.None;
              _btnCancel.style.display = DisplayStyle.Flex;
 
-             _responseView.SetText("Thinking...\n");
+             _responseView.SetText("");
              string context = _contextView.GetContext();
-             // Mistral Instruct Template: [INST] Instruction [/INST] (BOS added by tokenizer)
-             string fullPrompt = $"[INST] {prefix}\n\n{context} [/INST]";
+             
+             // System instruction: Enforce C#/Unity code only
+             string systemPrompt = "You are a Unity/C# coding assistant. IMPORTANT: Only generate C# code for Unity. Never use Python, JavaScript, or other languages. All code examples must be valid C# for Unity.";
+             
+             // Mistral Instruct Template: [INST] Instruction [/INST]
+             string fullPrompt = $"[INST] {systemPrompt}\n\n{prefix}\n\n{context} [/INST]";
 
              var progress = new System.Progress<string>(token => 
              {

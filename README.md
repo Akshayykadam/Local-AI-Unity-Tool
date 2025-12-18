@@ -22,7 +22,8 @@
 | **100% Private** | All processing happens locally. No data leaves your machine. |
 | **Free Forever** | Uses your hardware (CPU / Metal GPU). No API costs. |
 | **Unity Native UI** | Built with UI Toolkit, matches Unity Editor styling. |
-| **Context Aware** | Reads selected code, console errors, or manual input. |
+| **C# Code Only** | AI generates only C#/Unity code, never Python or other languages. |
+| **Clean Output** | Response shows only AI content - ready to copy. |
 | **Configurable** | Adjust context size (1K-8K) and response length. |
 | **Multi-Query** | Run multiple queries without restarting Unity. |
 
@@ -44,9 +45,9 @@ Downloads **Mistral 7B Instruct (Q4_K_M)** (~4GB):
 
 ### 3. Use the Assistant
 1. Open **Tools → Local AI Assistant**
-2. Select code in your editor, or enable **"Use Manual Input"** to paste code/errors
+2. Type your question or paste code in the input field
 3. Click **Explain Error**, **Explain Code**, or **Generate**
-4. Watch the AI response stream in real-time
+4. Copy the generated C# code directly to your project
 
 ---
 
