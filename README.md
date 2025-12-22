@@ -9,7 +9,7 @@
 
 ---
 ## Preview
-![ScreenRecording2025-12-22at10 31 48PM-ezgif com-video-to-gif-converter](https://github.com/user-attachments/assets/2e8187e5-79ad-4e5b-8ab9-ccde35563e84)
+![Screen Recording 2025-12-22 at 10 42 13 PM](https://github.com/user-attachments/assets/ccdf2bb0-7090-40f6-b145-96c980e52517)
 
 
 
