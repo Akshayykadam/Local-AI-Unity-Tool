@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UIElements;
+using UnityEditor;
 using LocalAI.Editor.Services;
 
 namespace LocalAI.Editor.UI
@@ -7,86 +8,128 @@ namespace LocalAI.Editor.UI
     public class ContextView
     {
         private readonly ContextCollector _collector;
-        private readonly Label _contextText;
+        private readonly Label _selectionSummary;
         private readonly TextField _manualInput;
-        private readonly Toggle _useManualToggle;
+        private readonly Toggle _includeSelectionToggle;
         private readonly VisualElement _contextContainer;
-
-        public bool UseManualInput => _useManualToggle?.value ?? false;
-        public string ManualInputText => _manualInput?.value ?? "";
+        
+        // Removed old "context-text" label support as we are using a robust manual+auto flow
+        
+        private readonly ProgressBar _usageBar;
+        private readonly Label _usageLabel;
+        private ContextData _cachedData;
 
         public ContextView(VisualElement root, ContextCollector collector)
         {
             _collector = collector;
             _contextContainer = root.Q<VisualElement>("context-container");
-            _contextText = root.Q<Label>("context-text");
             
             if (_contextContainer == null) return;
             
-            // Create manual input section
-            var manualSection = new VisualElement();
-            manualSection.style.marginTop = 8;
+            // Clear existing
+            _contextContainer.Clear();
             
-            // Toggle for manual input mode
-            _useManualToggle = new Toggle("Use Manual Input");
-            _useManualToggle.value = true;
-            _useManualToggle.style.marginBottom = 6;
-            manualSection.Add(_useManualToggle);
+            // 1. Selection Summary
+            _selectionSummary = new Label("Selected: None");
+            _selectionSummary.style.unityFontStyleAndWeight = FontStyle.Bold;
+            _contextContainer.Add(_selectionSummary);
             
-            // Manual input text area - full-size editable text box
+            // 2. Usage Stats (NEW)
+            var statsContainer = new VisualElement();
+            statsContainer.style.flexDirection = FlexDirection.Row;
+            statsContainer.style.marginTop = 2;
+            statsContainer.style.marginBottom = 8;
+            statsContainer.style.height = 14;
+            
+            _usageBar = new ProgressBar();
+            _usageBar.style.flexGrow = 1;
+            _usageBar.style.marginRight = 5;
+            _usageBar.lowValue = 0;
+            _usageBar.highValue = 100;
+            
+            _usageLabel = new Label("0 / 4000");
+            _usageLabel.style.fontSize = 10;
+            _usageLabel.style.width = 80;
+            _usageLabel.style.unityTextAlign = TextAnchor.MiddleRight;
+            
+            statsContainer.Add(_usageBar);
+            statsContainer.Add(_usageLabel);
+            _contextContainer.Add(statsContainer);
+            
+            // 3. Toggle "Include Selection"
+            _includeSelectionToggle = new Toggle("Include Selection Context");
+            _includeSelectionToggle.value = true;
+            _includeSelectionToggle.RegisterValueChangedCallback(evt => OnSelectionChanged());
+            _contextContainer.Add(_includeSelectionToggle);
+            
+            // 4. Manual Input
+            var inputLabel = new Label("User Input (Question / Instructions):");
+            inputLabel.style.fontSize = 11;
+            _contextContainer.Add(inputLabel);
+
             _manualInput = new TextField();
             _manualInput.multiline = true;
             _manualInput.style.flexGrow = 1;
-            _manualInput.style.minHeight = 120;
-            _manualInput.style.maxHeight = 200;
+            _manualInput.style.minHeight = 100;
             _manualInput.style.whiteSpace = WhiteSpace.PreWrap;
-            _manualInput.style.fontSize = 11;
             _manualInput.style.backgroundColor = new Color(0.17f, 0.17f, 0.17f);
-            _manualInput.style.borderTopLeftRadius = 3;
-            _manualInput.style.borderTopRightRadius = 3;
-            _manualInput.style.borderBottomLeftRadius = 3;
-            _manualInput.style.borderBottomRightRadius = 3;
-            _manualInput.style.display = DisplayStyle.Flex;
-            _manualInput.value = "// Paste code or error here...";
             
-            // Make the text input element fill the entire area
-            _manualInput.RegisterCallback<GeometryChangedEvent>(evt => {
-                var textInput = _manualInput.Q<VisualElement>("unity-text-input");
-                if (textInput != null)
-                {
-                    textInput.style.flexGrow = 1;
-                    textInput.style.minHeight = 100;
-                    textInput.style.unityTextAlign = TextAnchor.UpperLeft;
-                }
-            });
+            _contextContainer.Add(_manualInput);
             
-            manualSection.Add(_manualInput);
-            
-            // Toggle callback to show/hide input
-            _useManualToggle.RegisterValueChangedCallback(evt => {
-                _manualInput.style.display = evt.newValue ? DisplayStyle.Flex : DisplayStyle.None;
-                if (_contextText != null)
-                    _contextText.parent.style.display = evt.newValue ? DisplayStyle.None : DisplayStyle.Flex;
-            });
-            
-            _contextContainer.Add(manualSection);
+            // Hook Events
+            Selection.selectionChanged += OnSelectionChanged;
+            OnSelectionChanged(); // Init
         }
 
-        public void RefreshContext()
+        private void OnSelectionChanged()
         {
-            if (_contextText != null && !UseManualInput)
+            // Update Summary
+            int count = Selection.objects.Length;
+            if (count == 0) _selectionSummary.text = "Selected: None";
+            else if (count == 1) _selectionSummary.text = $"Selected: {Selection.activeObject.name}";
+            else _selectionSummary.text = $"Selected: {count} items";
+
+            // Update Context Data
+            if (_includeSelectionToggle.value)
             {
-                _contextText.text = _collector.CollectContext();
+                _cachedData = _collector.CollectContext();
+                UpdateUsageStats();
+            }
+            else
+            {
+                _cachedData = new ContextData(); // Empty
+                _usageBar.value = 0;
+                _usageLabel.text = "Disabled";
             }
         }
         
+        private void UpdateUsageStats()
+        {
+            float percent = (float)_cachedData.TotalChars / _cachedData.MaxChars * 100f;
+            _usageBar.value = percent;
+            _usageBar.title = $"{_cachedData.TotalChars} chars"; // Warning: Unity ProgressBar doesn't always show title
+            _usageLabel.text = $"{_cachedData.TotalChars} / {_cachedData.MaxChars}";
+            
+            if (_cachedData.IsTruncated)
+            {
+                _usageLabel.style.color = Color.yellow;
+                _usageLabel.text += " (!)";
+            }
+            else
+            {
+                _usageLabel.style.color = new Color(0.7f, 0.7f, 0.7f); // Default grey
+            }
+        }
+
         public string GetContext()
         {
-            if (UseManualInput && !string.IsNullOrWhiteSpace(ManualInputText))
-            {
-                return ManualInputText;
-            }
-            return _collector.CollectContext();
+            string context = _cachedData.FullText;
+            string userPrompt = _manualInput.value;
+            
+            if (string.IsNullOrWhiteSpace(userPrompt)) return context;
+            if (string.IsNullOrWhiteSpace(context)) return userPrompt;
+            
+            return $"USER QUERY:\n{userPrompt}\n\nREFERENCE CONTEXT:\n{context}";
         }
     }
 }

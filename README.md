@@ -9,12 +9,10 @@
 
 ---
 ## UI
-
-<img src="https://github.com/user-attachments/assets/8c980b9d-7314-4f2f-95d0-c6ce46985ebf" width="190" />
-<img src="https://github.com/user-attachments/assets/aa3e8902-b645-4ba6-989c-e74efb066e3f" width="190" />
-<img src="https://github.com/user-attachments/assets/775d31e5-ca43-47c8-9561-77e14856d41e" width="190" />
-<img src="https://github.com/user-attachments/assets/d64f9237-63a7-43a7-8973-f638a2435d0a" width="190" />
-<img src="https://github.com/user-attachments/assets/32c53892-e9ff-42cb-97fe-669f50dfddd8" width="190" />
+<img src="https://github.com/user-attachments/assets/f78e7980-463b-4fc9-a8f8-c913449d62be" width="160" />
+<img src="https://github.com/user-attachments/assets/42d2065b-c31a-4562-94c8-f725cf47ddcd" width="160" />
+<img src="https://github.com/user-attachments/assets/b33dab62-5e02-4382-83bb-374408d4c840" width="160" />
+<img src="https://github.com/user-attachments/assets/1665d517-6c27-4af2-be72-e565889bc667" width="160" />
 
 
 ## Features
@@ -46,14 +44,17 @@ Downloads **Mistral 7B Instruct (Q4_K_M)** (~4GB):
 - Windows: `%AppData%\LocalAIUnity\models\`
 
 ### 3. Use the Assistant
-1. Open **Tools → Local AI Assistant**
-2. **Type your question** (e.g., "Why does my async method freeze?") or paste code/error in the input field.
+1. **Select** a GameObject (Hierarchy) or Script (Project) to give the AI context.
+   - *The AI automatically analyzes components, code, and hierarchy.*
+2. **Type your question** (e.g., "Add a jump feature") in the input field.
 3. Click an action:
-   - **Ask**: General Q&A (Best for "Why?" or "How to?" questions).
-   - **Explain Error**: Diagnoses errors and suggests fixes.
-   - **Explain Code**: Explains selected scripts.
-   - **Generate**: Writes new scripts based on your request.
-4. **Select & Copy** the text you need from the response.
+   - **Ask**: Best for general questions about the selected object.
+   - **Explain Error**: Fixes errors relevant to your selection.
+   - **Explain Code**: Explains the selected script or object logic.
+   - **Generate**: Generates new code using your selection as a reference.
+4. **Copy** the result.
+
+> **Tip**: Toggle "Include Selection Context" in the UI to control if the AI sees your selection.
 
 ---
 
@@ -61,14 +62,13 @@ Downloads **Mistral 7B Instruct (Q4_K_M)** (~4GB):
 | Feature | Description |
 | :--- | :--- |
 | **Ask Button** | [NEW] Dedicated Q&A mode for general Unity questions. |
-| **Local AI 2.0** | Optimized Mistral 7B with expert prompting & repetition penalties. |
-| **Select & Copy** | Response text is now fully selectable for partial copying. |
-| **Local + Cloud AI** | Choose between offline local inference or cloud APIs (Gemini, OpenAI, Claude) |
-| **100% Private (Local)** | Local mode - all processing happens on your machine. No data leaves. |
-| **Unity Native UI** | Built with UI Toolkit, matches Unity Editor styling. |
-| **C# Code Only** | AI generates only C#/Unity code, never Python or other languages. |
-| **Clean Output** | Response shows only AI content - ready to copy. |
-| **Configurable** | Adjust context size. Gemini 2.5 Flash Lite supported. |
+| **Smart Context** | [NEW] Select objects/scripts to automatically analyze them. |
+| **Visual Limits** | [NEW] See real-time context usage (e.g. 2500/4000 chars) & warnings. |
+| **Local + Cloud AI** | Choose offline inference or cloud APIs (Gemini, OpenAI, Claude). |
+| **100% Private** | Local mode is fully offline. Cloud mode is opt-in. |
+| **Unity Native UI** | Matches Editor styling. Selectable text. |
+| **C# Code Only** | Optimized for Unity development. |
+| **Configurable** | Adjust model, context size, response length. |
 
 ---
 

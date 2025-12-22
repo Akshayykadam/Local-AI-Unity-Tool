@@ -52,13 +52,7 @@ namespace LocalAI.Editor.UI
             var settingsBtn = rootVisualElement.Q<Button>("btn-settings");
             if (settingsBtn != null) settingsBtn.clicked += _settingsView.Show;
 
-            // Refresh initially
-            _contextView.RefreshContext();
-        }
-
-        private void OnSelectionChange()
-        {
-            _contextView?.RefreshContext();
+            // ContextView initializes itself
         }
 
         private void OnDestroy()

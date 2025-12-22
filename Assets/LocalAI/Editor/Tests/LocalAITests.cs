@@ -18,10 +18,10 @@ namespace LocalAI.Editor.Tests
             // Assumption: ContextCollector handles null.
             
             // Act
-            string context = collector.CollectContext();
+            var data = collector.CollectContext();
 
             // Assert
-            Assert.IsNotEmpty(context);
+            Assert.IsNotEmpty(data.FullText);
             // We expect "No Object Selected" or active object name
         }
 
