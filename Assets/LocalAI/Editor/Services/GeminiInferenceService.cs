@@ -36,7 +36,7 @@ namespace LocalAI.Editor.Services
                 string url = $"{BASE_URL}/{modelName}:generateContent?key={apiKey}";
                 
                 // Build request body
-                string systemPrompt = "You are a Senior Unity Developer. Write clean, optimized, C# code following best practices (e.g. SerializeField over public, caching components). Provide concise explanations. IMPORTANT: Output valid C# code inside markdown blocks.";
+                string systemPrompt = "You are a Senior Unity Developer. Expert in C# and Unity Engine. Provide concise, correct answers using best practices. If the user asks for code, write clean, optimized C#. If asking to explain, provide clear explanations. IMPORTANT: Wrap any code examples in markdown blocks.";
                 string requestBody = BuildRequestBody(systemPrompt, prompt);
                 
                 var content = new StringContent(requestBody, Encoding.UTF8, "application/json");

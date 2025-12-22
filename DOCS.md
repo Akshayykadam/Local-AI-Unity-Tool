@@ -34,11 +34,12 @@ This document provides detailed technical documentation for developers who want 
 │  ┌──────────────────────────────────────────────────────────┐   │
 │  │                     Services Layer                        │   │
 │  │  ┌───────────────┐ ┌─────────────────┐ ┌──────────────┐  │   │
-│  │  │ ModelManager  │ │InferenceService │ │LocalAISettings│ │   │
+│  │  │ ModelManager  │ │ LocalInference  │ │ CloudServices│  │   │
 │  │  └───────────────┘ └─────────────────┘ └──────────────┘  │   │
+│  │                     (Gemini/GPT/Claude)                   │   │
 │  └──────────────────────────────────────────────────────────┘   │
 │                              │                                   │
-│                              ▼                                   │
+│            (Local Only)      ▼                                   │
 │  ┌──────────────────────────────────────────────────────────┐   │
 │  │                   Runtime Layer                           │   │
 │  │  ┌────────────────────────────────────────────────────┐  │   │
@@ -139,6 +140,10 @@ public async Task StartInferenceAsync(
     CancellationToken token  // For cancellation support
 );
 
+// [NEW] Cloud Services
+// Implements IInferenceService for Gemini, OpenAI, Claude.
+// Example: GeminiInferenceService uses Gemini 2.5 Flash Lite default.
+
 // Initialize model and context (called once)
 private bool Initialize(string modelPath);
 
@@ -158,8 +163,11 @@ private string Detokenize(int token);
 // Simplified inference loop
 for (int i = 0; i < maxTokens; i++)
 {
-    // Sample next token
-    int newToken = LLMNativeBridge.llama_sampler_sample(sampler, ctx, -1);
+    // [NEW] Repetition Penalty (1.1 over 64 token window)
+    ApplyRepetitionPenalty(logits, history);
+
+    // Sample next token (Greedy)
+    int newToken = ArgMax(logits);
     
     // Check for end of sequence
     if (newToken == eosToken) break;
@@ -329,15 +337,25 @@ unsafe
    - _isGenerating = false
 ```
 
-### Prompt Format (Mistral)
+### Prompt Format (Dynamic)
 
+The tool selects a system prompt based on user intent:
+
+**1. Error Diagnosis (Rigid):**
 ```
-<s>[INST] You are a helpful Unity/C# coding assistant.
+[INST] You are a specific, deterministic Unity 2021.3+ C# expert. Fix errors and explain why.
+RULES:
+1. RESPONSE FORMAT: Diagnosis -> Fix -> Code Block.
+...
+TASK: Explain the following error context:
+CONTEXT: {context} [/INST]
+```
 
-Context:
-{user_code_or_error}
-
-Explain this code. [/INST]
+**2. Q&A / Ask (Flexible):**
+```
+[INST] You are a Unity C# Expert. Answer the user's question clearly.
+...
+TASK: Question: {user_input} [/INST]
 ```
 
 ---
@@ -386,8 +404,8 @@ Uses Unity Editor native color palette:
 | `HeaderView` | Status indicator, model name, settings button |
 | `SettingsView` | Model path, AI settings (context size, max tokens) |
 | `ResponseView` | Displays AI response, copy/clear buttons |
-| `ContextView` | Shows collected context, manual input toggle |
-| `ActionBarView` | Explain Error, Explain Code, Generate buttons |
+| `ContextView` | Shows collected context, Manual Input (TextField) |
+| `ActionBarView` | Ask, Explain Error, Explain Code, Generate buttons |
 
 ---
 

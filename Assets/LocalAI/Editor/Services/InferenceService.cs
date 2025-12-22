@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -92,6 +93,8 @@ namespace LocalAI.Editor.Services
 
                     // 4. Generation Loop
                     int maxTokens = _cachedMaxTokens;
+                    List<int> history = new List<int>();
+                    
                     for (int i = 0; i < maxTokens; i++)
                     {
                         if (token.IsCancellationRequested)
@@ -100,12 +103,34 @@ namespace LocalAI.Editor.Services
                             break;
                         }
 
-                        // Sample: Greedy (argmax)
+                        // Sample: Greedy (argmax) with Repetition Penalty
                         float[] logitsArray = LLMNativeBridge.GetLogitsSafe(_ctx, _vocabSize);
                         if (logitsArray == null)
                         {
                             progress?.Report("\n[Error] Failed to get logits.");
                             break;
+                        }
+
+                        // Apply Repetition Penalty (1.1 over last 64 tokens)
+                        const float REPEAT_PENALTY = 1.1f;
+                        const int PENALTY_WINDOW = 64;
+                        
+                        // We need to track generated tokens. 
+                        // Note: Ideally we track prompt + generated, but tracking generated is usually enough to prevent loops.
+                        // Since we don't have a persistent history list here, we'll need to add it.
+                        // IMPROVEMENT: Use a local history list for this session.
+                        
+                        // (Assuming we add 'List<int> history = new List<int>();' before loop)
+                         
+                        int startIdx = Math.Max(0, history.Count - PENALTY_WINDOW);
+                        for (int h = startIdx; h < history.Count; h++)
+                        {
+                            int tokenToPenalize = history[h];
+                            if (tokenToPenalize >= 0 && tokenToPenalize < _vocabSize)
+                            {
+                                if (logitsArray[tokenToPenalize] > 0) logitsArray[tokenToPenalize] /= REPEAT_PENALTY;
+                                else logitsArray[tokenToPenalize] *= REPEAT_PENALTY;
+                            }
                         }
 
                         int nextToken = 0;
@@ -118,6 +143,9 @@ namespace LocalAI.Editor.Services
                                 nextToken = v;
                             }
                         }
+
+                        // Add to history
+                        history.Add(nextToken);
 
                         // Check EOS
                         if (nextToken == _eosToken)

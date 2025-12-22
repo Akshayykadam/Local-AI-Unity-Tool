@@ -45,9 +45,28 @@ Downloads **Mistral 7B Instruct (Q4_K_M)** (~4GB):
 
 ### 3. Use the Assistant
 1. Open **Tools → Local AI Assistant**
-2. Type your question or paste code in the input field
-3. Click **Explain Error**, **Explain Code**, or **Generate**
-4. Copy the generated C# code directly to your project
+2. **Type your question** (e.g., "Why does my async method freeze?") or paste code/error in the input field.
+3. Click an action:
+   - **Ask**: General Q&A (Best for "Why?" or "How to?" questions).
+   - **Explain Error**: Diagnoses errors and suggests fixes.
+   - **Explain Code**: Explains selected scripts.
+   - **Generate**: Writes new scripts based on your request.
+4. **Select & Copy** the text you need from the response.
+
+---
+
+## Features
+| Feature | Description |
+| :--- | :--- |
+| **Ask Button** | [NEW] Dedicated Q&A mode for general Unity questions. |
+| **Local AI 2.0** | Optimized Mistral 7B with expert prompting & repetition penalties. |
+| **Select & Copy** | Response text is now fully selectable for partial copying. |
+| **Local + Cloud AI** | Choose between offline local inference or cloud APIs (Gemini, OpenAI, Claude) |
+| **100% Private (Local)** | Local mode - all processing happens on your machine. No data leaves. |
+| **Unity Native UI** | Built with UI Toolkit, matches Unity Editor styling. |
+| **C# Code Only** | AI generates only C#/Unity code, never Python or other languages. |
+| **Clean Output** | Response shows only AI content - ready to copy. |
+| **Configurable** | Adjust context size. Gemini 2.5 Flash Lite supported. |
 
 ---
 

@@ -43,6 +43,7 @@
 
             <!-- Action Bar -->
             <ui:VisualElement name="action-bar-container" class="action-bar">
+                 <ui:Button name="btn-ask" text="Ask" class="action-btn" />
                  <ui:Button name="btn-explain-error" text="Explain Error" class="action-btn" />
                  <ui:Button name="btn-explain-code" text="Explain Code" class="action-btn" />
                  <ui:Button name="btn-generate" text="Generate" class="action-btn" />

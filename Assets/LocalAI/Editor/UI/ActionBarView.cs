@@ -15,6 +15,7 @@ namespace LocalAI.Editor.UI
         private readonly ContextView _contextView;
         private readonly ResponseView _responseView;
 
+        private readonly Button _btnAsk;
         private readonly Button _btnExplainError;
         private readonly Button _btnExplainCode;
         private readonly Button _btnGenerate;
@@ -34,11 +35,13 @@ namespace LocalAI.Editor.UI
             _openAIService = new OpenAIInferenceService();
             _claudeService = new ClaudeInferenceService();
 
+            _btnAsk = root.Q<Button>("btn-ask");
             _btnExplainError = root.Q<Button>("btn-explain-error");
             _btnExplainCode = root.Q<Button>("btn-explain-code");
             _btnGenerate = root.Q<Button>("btn-generate");
             _btnCancel = root.Q<Button>("btn-cancel");
 
+            _btnAsk.clicked += () => StartInference("Question:");
             _btnExplainError.clicked += () => StartInference("Explain the following error context:");
             _btnExplainCode.clicked += () => StartInference("Explain this code:");
             _btnGenerate.clicked += () => StartInference("Generate a script for:");
@@ -71,6 +74,7 @@ namespace LocalAI.Editor.UI
                 ready = LocalAISettings.HasApiKey(provider);
             }
             
+            _btnAsk.SetEnabled(ready);
             _btnExplainError.SetEnabled(ready);
             _btnExplainCode.SetEnabled(ready);
             _btnGenerate.SetEnabled(ready);
@@ -132,6 +136,7 @@ namespace LocalAI.Editor.UI
 
              _cts = new CancellationTokenSource();
              
+             _btnAsk.style.display = DisplayStyle.None;
              _btnExplainError.style.display = DisplayStyle.None;
              _btnExplainCode.style.display = DisplayStyle.None;
              _btnGenerate.style.display = DisplayStyle.None;
@@ -143,9 +148,40 @@ namespace LocalAI.Editor.UI
              string fullPrompt;
              if (provider == AIProvider.Local)
              {
-                 // Mistral Instruct Template for local model
-                 string systemPrompt = "You are a Unity/C# coding assistant. IMPORTANT: Only generate C# code for Unity. Never use Python, JavaScript, or other languages. All code examples must be valid C# for Unity.";
-                 fullPrompt = $"[INST] {systemPrompt}\n\n{prefix}\n\n{context} [/INST]";
+                string systemPrompt = "";
+                 
+                 if (prefix.Contains("Error"))
+                 {
+                     // DIAGNOSTIC PROMPT
+                     systemPrompt = 
+                         "You are a specific, deterministic Unity 2021.3+ C# expert. Fix errors and explain why.\n" +
+                         "RULES:\n" +
+                         "1. RESPONSE FORMAT: Diagnosis (1 sentence) -> Fix (1 sentence) -> Code Block.\n" +
+                         "2. EXPLAIN WHY the error happened before fixing.\n" +
+                         "3. OUTPUT valid C# code.";
+                 }
+                 else if (prefix.Contains("Question"))
+                 {
+                     // Q&A PROMPT
+                     systemPrompt = 
+                         "You are a Unity C# Expert. Answer the user's question clearly and concisely.\n" +
+                         "RULES:\n" +
+                         "1. Explain the concept simply.\n" +
+                         "2. Provide a short C# code example to illustrate.\n" +
+                         "3. Do not invent APIs.";
+                 }
+                 else
+                 {
+                     // GENERIC / GENERATION PROMPT
+                     systemPrompt = 
+                         "You are a Unity C# Expert. Write clean, optimized scripts.\n" +
+                         "RULES:\n" +
+                         "1. Use standard Unity patterns (Awake, SerializeField).\n" +
+                         "2. Output only valid C# in markdown blocks.\n" +
+                         "3. Be concise.";
+                 }
+                 
+                 fullPrompt = $"[INST] {systemPrompt}\n\nTASK: {prefix}\n\nCONTEXT:\n{context} [/INST]";
              }
              else
              {
@@ -161,6 +197,7 @@ namespace LocalAI.Editor.UI
              IInferenceService service = GetActiveService();
              await service.StartInferenceAsync(fullPrompt, progress, _cts.Token);
 
+             _btnAsk.style.display = DisplayStyle.Flex;
              _btnExplainError.style.display = DisplayStyle.Flex;
              _btnExplainCode.style.display = DisplayStyle.Flex;
              _btnGenerate.style.display = DisplayStyle.Flex;
