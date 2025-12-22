@@ -14,10 +14,11 @@ namespace LocalAI.Editor.UI
         private readonly VisualElement _contextContainer;
         
         // Removed old "context-text" label support as we are using a robust manual+auto flow
-        
         private readonly ProgressBar _usageBar;
         private readonly Label _usageLabel;
         private ContextData _cachedData;
+        
+        public event System.Action<ContextData> OnContextUpdated;
 
         public ContextView(VisualElement root, ContextCollector collector)
         {
@@ -94,12 +95,14 @@ namespace LocalAI.Editor.UI
             {
                 _cachedData = _collector.CollectContext();
                 UpdateUsageStats();
+                OnContextUpdated?.Invoke(_cachedData);
             }
             else
             {
                 _cachedData = new ContextData(); // Empty
                 _usageBar.value = 0;
                 _usageLabel.text = "Disabled";
+                OnContextUpdated?.Invoke(_cachedData);
             }
         }
         

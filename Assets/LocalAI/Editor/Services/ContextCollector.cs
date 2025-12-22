@@ -19,13 +19,31 @@ namespace LocalAI.Editor.Services
     public class ContextCollector
     {
         private const int MAX_CHARS_PER_FILE = 2000;
-        private const int MAX_TOTAL_CONTEXT = 4000;
         
+        // Dynamic limit calculation
+        private int GetMaxTotalContext()
+        {
+            // Calculate safe budget: ContextSize - MaxResponse - Reserve
+            int contextSize = (int)LocalAISettings.ContextSize;
+            int maxResponse = LocalAISettings.MaxTokens;
+            int systemReserve = 500; // System instructions + overhead
+            
+            int availableTokens = contextSize - maxResponse - systemReserve;
+            
+            // Safety floor: If settings are aggressive (e.g. 2K context, 2K response), 
+            // force at least 500 tokens for input to avoid total blockage (though it might still truncate heavily)
+            if (availableTokens < 500) availableTokens = 500;
+            
+            // Convert to chars (Approx 3.5 chars per token is standard, using 3 for safety)
+            return availableTokens * 3;
+        }
         public ContextData CollectContext()
         {
+            int maxLimit = GetMaxTotalContext();
+            
             var data = new ContextData
             {
-                MaxChars = MAX_TOTAL_CONTEXT,
+                MaxChars = maxLimit,
                 Warnings = new List<string>()
             };
             
@@ -48,7 +66,7 @@ namespace LocalAI.Editor.Services
                 sb.AppendLine("[Selection Source: Project Assets]");
                 foreach (Object obj in selectedObjects)
                 {
-                    if (sb.Length >= MAX_TOTAL_CONTEXT) 
+                    if (sb.Length >= maxLimit) 
                     {
                         data.IsTruncated = true;
                         data.Warnings.Add("Max context limit reached");
@@ -83,11 +101,11 @@ namespace LocalAI.Editor.Services
             }
             
             // 2. Check Limits
-            if (sb.Length > MAX_TOTAL_CONTEXT)
+            if (sb.Length > maxLimit)
             {
                 data.IsTruncated = true;
                 data.Warnings.Add("Total context truncated");
-                string truncated = sb.ToString().Substring(0, MAX_TOTAL_CONTEXT);
+                string truncated = sb.ToString().Substring(0, maxLimit);
                 data.FullText = truncated + "\n... [Context Truncated]";
             }
             else

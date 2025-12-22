@@ -49,11 +49,19 @@ namespace LocalAI.Editor.UI
             _btnCancel.clicked += CancelInference;
 
             _modelManager.OnStateChanged += OnModelStateChanged;
+            _contextView.OnContextUpdated += OnContextUpdated;
             UpdateButtonStates();
         }
 
         private void OnModelStateChanged(ModelManager.ModelState state)
         {
+            UpdateButtonStates();
+        }
+        
+        private bool _isContextTruncated = false;
+        private void OnContextUpdated(ContextData data)
+        {
+            _isContextTruncated = data.IsTruncated;
             UpdateButtonStates();
         }
         
@@ -74,19 +82,39 @@ namespace LocalAI.Editor.UI
                 ready = LocalAISettings.HasApiKey(provider);
             }
             
-            _btnAsk.SetEnabled(ready);
-            _btnExplainError.SetEnabled(ready);
-            _btnExplainCode.SetEnabled(ready);
-            _btnGenerate.SetEnabled(ready);
+            // Check context safety
+            string tooltip = "";
+            bool safe = ready;
+            
+            if (_isContextTruncated)
+            {
+                safe = false;
+                tooltip = "Context exceeds limit. Please reduce selection.";
+            }
+            else if (!ready)
+            {
+                tooltip = provider == AIProvider.Local ? "Model not ready" : "API Key missing";
+            }
+            
+            _btnAsk.SetEnabled(safe);
+            _btnExplainError.SetEnabled(safe);
+            _btnExplainCode.SetEnabled(safe);
+            _btnGenerate.SetEnabled(safe);
+            
+            _btnAsk.tooltip = tooltip;
+            _btnExplainError.tooltip = tooltip;
+            _btnExplainCode.tooltip = tooltip;
+            _btnGenerate.tooltip = tooltip;
 
             if (showDownload && provider == AIProvider.Local)
             {
                 _btnGenerate.text = "Download Model";
                 _btnGenerate.SetEnabled(true);
+                _btnGenerate.tooltip = "Download required model (4GB)";
                 _btnGenerate.clicked -= DownloadModel;
                 _btnGenerate.clicked += DownloadModel;
             }
-            else if (!ready && provider != AIProvider.Local)
+            else if (!ready && provider != AIProvider.Local && !_isContextTruncated)
             {
                 _btnGenerate.text = "Configure API Key";
                 _btnGenerate.SetEnabled(false);

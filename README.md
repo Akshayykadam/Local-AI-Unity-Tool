@@ -9,10 +9,11 @@
 
 ---
 ## UI
-<img src="https://github.com/user-attachments/assets/f78e7980-463b-4fc9-a8f8-c913449d62be" width="160" />
-<img src="https://github.com/user-attachments/assets/42d2065b-c31a-4562-94c8-f725cf47ddcd" width="160" />
-<img src="https://github.com/user-attachments/assets/b33dab62-5e02-4382-83bb-374408d4c840" width="160" />
-<img src="https://github.com/user-attachments/assets/1665d517-6c27-4af2-be72-e565889bc667" width="160" />
+<img src="https://github.com/user-attachments/assets/8c980b9d-7314-4f2f-95d0-c6ce46985ebf" width="190" />
+<img src="https://github.com/user-attachments/assets/aa3e8902-b645-4ba6-989c-e74efb066e3f" width="190" />
+<img src="https://github.com/user-attachments/assets/775d31e5-ca43-47c8-9561-77e14856d41e" width="190" />
+<img src="https://github.com/user-attachments/assets/d64f9237-63a7-43a7-8973-f638a2435d0a" width="190" />
+<img src="https://github.com/user-attachments/assets/32c53892-e9ff-42cb-97fe-669f50dfddd8" width="190" />
 
 
 ## Features
@@ -63,7 +64,8 @@ Downloads **Mistral 7B Instruct (Q4_K_M)** (~4GB):
 | :--- | :--- |
 | **Ask Button** | [NEW] Dedicated Q&A mode for general Unity questions. |
 | **Smart Context** | [NEW] Select objects/scripts to automatically analyze them. |
-| **Visual Limits** | [NEW] See real-time context usage (e.g. 2500/4000 chars) & warnings. |
+| **Visual Limits** | [NEW] Real-time usage bar (e.g. 2500/4000) with truncation warnings. |
+| **Safety Guard** | [NEW] Automatically disables actions if selection exceeds context limits. |
 | **Local + Cloud AI** | Choose offline inference or cloud APIs (Gemini, OpenAI, Claude). |
 | **100% Private** | Local mode is fully offline. Cloud mode is opt-in. |
 | **Unity Native UI** | Matches Editor styling. Selectable text. |
