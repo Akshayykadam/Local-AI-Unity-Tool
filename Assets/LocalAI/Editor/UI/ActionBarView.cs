@@ -8,7 +8,10 @@ namespace LocalAI.Editor.UI
     public class ActionBarView
     {
         private readonly ModelManager _modelManager;
-        private readonly InferenceService _inferenceService;
+        private readonly InferenceService _localInferenceService;
+        private readonly GeminiInferenceService _geminiService;
+        private readonly OpenAIInferenceService _openAIService;
+        private readonly ClaudeInferenceService _claudeService;
         private readonly ContextView _contextView;
         private readonly ResponseView _responseView;
 
@@ -22,9 +25,14 @@ namespace LocalAI.Editor.UI
         public ActionBarView(VisualElement root, ModelManager modelManager, InferenceService inferenceService, ContextView contextView, ResponseView responseView)
         {
             _modelManager = modelManager;
-            _inferenceService = inferenceService;
+            _localInferenceService = inferenceService;
             _contextView = contextView;
             _responseView = responseView;
+            
+            // Initialize cloud services
+            _geminiService = new GeminiInferenceService();
+            _openAIService = new OpenAIInferenceService();
+            _claudeService = new ClaudeInferenceService();
 
             _btnExplainError = root.Q<Button>("btn-explain-error");
             _btnExplainCode = root.Q<Button>("btn-explain-code");
@@ -38,25 +46,50 @@ namespace LocalAI.Editor.UI
             _btnCancel.clicked += CancelInference;
 
             _modelManager.OnStateChanged += OnModelStateChanged;
-            OnModelStateChanged(_modelManager.CurrentState);
+            UpdateButtonStates();
         }
 
         private void OnModelStateChanged(ModelManager.ModelState state)
         {
-            bool ready = state == ModelManager.ModelState.Ready;
-            bool missing = state == ModelManager.ModelState.NotInstalled;
-
+            UpdateButtonStates();
+        }
+        
+        private void UpdateButtonStates()
+        {
+            AIProvider provider = LocalAISettings.ActiveProvider;
+            bool ready = false;
+            bool showDownload = false;
+            
+            if (provider == AIProvider.Local)
+            {
+                ready = _modelManager.CurrentState == ModelManager.ModelState.Ready;
+                showDownload = _modelManager.CurrentState == ModelManager.ModelState.NotInstalled;
+            }
+            else
+            {
+                // Cloud providers - check if API key is configured
+                ready = LocalAISettings.HasApiKey(provider);
+            }
+            
             _btnExplainError.SetEnabled(ready);
             _btnExplainCode.SetEnabled(ready);
             _btnGenerate.SetEnabled(ready);
 
-            if (missing)
+            if (showDownload && provider == AIProvider.Local)
             {
-                // TODO: Hack to show download button here if we don't have a separate DownloadView overlay yet
                 _btnGenerate.text = "Download Model";
                 _btnGenerate.SetEnabled(true);
-                _btnGenerate.clicked -= DownloadModel; // prevent double sub
+                _btnGenerate.clicked -= DownloadModel;
                 _btnGenerate.clicked += DownloadModel;
+            }
+            else if (!ready && provider != AIProvider.Local)
+            {
+                _btnGenerate.text = "Configure API Key";
+                _btnGenerate.SetEnabled(false);
+            }
+            else
+            {
+                _btnGenerate.text = "Generate";
             }
         }
 
@@ -65,11 +98,37 @@ namespace LocalAI.Editor.UI
             _modelManager.StartDownload();
         }
 
+        private IInferenceService GetActiveService()
+        {
+            AIProvider provider = LocalAISettings.ActiveProvider;
+            Debug.Log($"[LocalAI] GetActiveService - Provider: {provider}");
+            return provider switch
+            {
+                AIProvider.Gemini => _geminiService,
+                AIProvider.OpenAI => _openAIService,
+                AIProvider.Claude => _claudeService,
+                _ => _localInferenceService
+            };
+        }
+
         private async void StartInference(string prefix)
         {
              // Cleanup hack
              _btnGenerate.clicked -= DownloadModel;
-             if (_modelManager.CurrentState != ModelManager.ModelState.Ready) return;
+             
+             AIProvider provider = LocalAISettings.ActiveProvider;
+             Debug.Log($"[LocalAI] StartInference - Active Provider: {provider}");
+             
+             // Check readiness based on provider
+             if (provider == AIProvider.Local)
+             {
+                 if (_modelManager.CurrentState != ModelManager.ModelState.Ready) return;
+                 _localInferenceService.SetModelPath(_modelManager.GetModelPath());
+             }
+             else
+             {
+                 if (!LocalAISettings.HasApiKey(provider)) return;
+             }
 
              _cts = new CancellationTokenSource();
              
@@ -81,23 +140,33 @@ namespace LocalAI.Editor.UI
              _responseView.SetText("");
              string context = _contextView.GetContext();
              
-             // System instruction: Enforce C#/Unity code only
-             string systemPrompt = "You are a Unity/C# coding assistant. IMPORTANT: Only generate C# code for Unity. Never use Python, JavaScript, or other languages. All code examples must be valid C# for Unity.";
-             
-             // Mistral Instruct Template: [INST] Instruction [/INST]
-             string fullPrompt = $"[INST] {systemPrompt}\n\n{prefix}\n\n{context} [/INST]";
+             string fullPrompt;
+             if (provider == AIProvider.Local)
+             {
+                 // Mistral Instruct Template for local model
+                 string systemPrompt = "You are a Unity/C# coding assistant. IMPORTANT: Only generate C# code for Unity. Never use Python, JavaScript, or other languages. All code examples must be valid C# for Unity.";
+                 fullPrompt = $"[INST] {systemPrompt}\n\n{prefix}\n\n{context} [/INST]";
+             }
+             else
+             {
+                 // Plain prompt for cloud providers (they handle system prompts internally)
+                 fullPrompt = $"{prefix}\n\n{context}";
+             }
 
              var progress = new System.Progress<string>(token => 
              {
                  _responseView.AppendText(token);
              });
 
-             await _inferenceService.StartInferenceAsync(fullPrompt, _modelManager.GetModelPath(), progress, _cts.Token);
+             IInferenceService service = GetActiveService();
+             await service.StartInferenceAsync(fullPrompt, progress, _cts.Token);
 
              _btnExplainError.style.display = DisplayStyle.Flex;
              _btnExplainCode.style.display = DisplayStyle.Flex;
              _btnGenerate.style.display = DisplayStyle.Flex;
              _btnCancel.style.display = DisplayStyle.None;
+             
+             UpdateButtonStates();
         }
 
         private void CancelInference()

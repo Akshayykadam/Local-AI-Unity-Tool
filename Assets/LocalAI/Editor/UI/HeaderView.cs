@@ -22,7 +22,9 @@ namespace LocalAI.Editor.UI
             
             _settingsBtn.clicked += OnSettingsClicked;
 
-            UpdateUI(_modelManager.CurrentState);
+            LocalAISettings.OnProviderChanged += (p) => UpdateUI();
+            
+            UpdateUI();
         }
 
         private void OnSettingsClicked()
@@ -32,7 +34,7 @@ namespace LocalAI.Editor.UI
 
         private void OnStateChanged(ModelManager.ModelState state)
         {
-            UpdateUI(state);
+            UpdateUI();
         }
 
         private void OnDownloadProgress(DownloadProgress progress)
@@ -40,19 +42,41 @@ namespace LocalAI.Editor.UI
             // Marshal to main thread for UI update
             UnityEditor.EditorApplication.delayCall += () =>
             {
-                if (_modelManager.CurrentState == ModelManager.ModelState.Downloading)
+                if (LocalAISettings.ActiveProvider == AIProvider.Local && 
+                    _modelManager.CurrentState == ModelManager.ModelState.Downloading)
                 {
                     _modelLabel.text = progress.GetDisplayText();
                 }
             };
         }
 
-        private void UpdateUI(ModelManager.ModelState state)
+        private void UpdateUI()
         {
             _statusDot.RemoveFromClassList("ready");
             _statusDot.RemoveFromClassList("downloading");
             _statusDot.RemoveFromClassList("error");
 
+            var provider = LocalAISettings.ActiveProvider;
+
+            if (provider != AIProvider.Local)
+            {
+                // Cloud Provider Logic
+                bool hasKey = LocalAISettings.HasApiKey(provider);
+                if (hasKey)
+                {
+                    _statusDot.AddToClassList("ready");
+                    _modelLabel.text = $"Active: {provider}";
+                }
+                else
+                {
+                    _statusDot.AddToClassList("error"); // Or yellow?
+                    _modelLabel.text = $"{provider} (No API Key)";
+                }
+                return;
+            }
+
+            // Local Model Logic
+            var state = _modelManager.CurrentState;
             switch (state)
             {
                 case ModelManager.ModelState.Ready:

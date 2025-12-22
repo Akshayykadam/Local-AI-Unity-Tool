@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace LocalAI.Editor.Services
 {
-    public class InferenceService
+    public class InferenceService : IInferenceService
     {
         private bool _isGenerating = false;
         private IntPtr _model = IntPtr.Zero;
@@ -15,12 +15,19 @@ namespace LocalAI.Editor.Services
         private IntPtr _vocab = IntPtr.Zero;
         private int _vocabSize = 0;
         private int _eosToken = -1;
+        private string _modelPath;
         
         // Cached settings (must be read on main thread)
         private uint _cachedContextSize;
         private int _cachedMaxTokens;
+        
+        public string DisplayName => "Local (Offline)";
+        
+        public bool IsReady => !string.IsNullOrEmpty(_modelPath) && System.IO.File.Exists(_modelPath);
+        
+        public void SetModelPath(string path) => _modelPath = path;
 
-        public async Task StartInferenceAsync(string prompt, string modelPath, IProgress<string> progress, CancellationToken token)
+        public async Task StartInferenceAsync(string prompt, IProgress<string> progress, CancellationToken token)
         {
             if (_isGenerating)
             {
@@ -39,7 +46,7 @@ namespace LocalAI.Editor.Services
                 try
                 {
                     // 1. Initialize Model & Context
-                    if (!Initialize(modelPath))
+                    if (!Initialize(_modelPath))
                     {
                         progress?.Report("[Error] Failed to initialize model.\n");
                         return;

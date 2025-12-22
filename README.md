@@ -5,7 +5,7 @@
 ![Platform](https://img.shields.io/badge/Platform-macOS%20%7C%20Windows-lightgrey?style=flat-square)
 ![Status](https://img.shields.io/badge/Status-Working-brightgreen?style=flat-square)
 
-> **Privacy-focused, offline AI coding assistant running directly inside Unity Editor.**
+> **AI coding assistant for Unity Editor with local and cloud AI options.**
 
 ---
 ## UI
@@ -19,8 +19,8 @@
 
 | Feature | Description |
 | :--- | :--- |
-| **100% Private** | All processing happens locally. No data leaves your machine. |
-| **Free Forever** | Uses your hardware (CPU / Metal GPU). No API costs. |
+| **Local + Cloud AI** | Choose between offline local inference or cloud APIs (Gemini, OpenAI, Claude) |
+| **100% Private (Local)** | Local mode - all processing happens on your machine. No data leaves. |
 | **Unity Native UI** | Built with UI Toolkit, matches Unity Editor styling. |
 | **C# Code Only** | AI generates only C#/Unity code, never Python or other languages. |
 | **Clean Output** | Response shows only AI content - ready to copy. |
@@ -51,14 +51,49 @@ Downloads **Mistral 7B Instruct (Q4_K_M)** (~4GB):
 
 ---
 
+## Cloud AI Providers (Optional)
+
+For faster responses or when you don't want to download the 4GB local model, use cloud AI:
+
+### Setup
+1. Open **Tools → Local AI Assistant → Settings**
+2. Select a provider from the **AI Provider** dropdown:
+   - **Google Gemini** - Defaults to `gemini-2.5-flash-lite` (Free Tier friendly)
+   - **OpenAI** - Uses `gpt-4o-mini`
+   - **Anthropic Claude** - Uses `claude-3-haiku`
+3. Enter your API key (get one from the provider's website)
+4. Start querying!
+
+### Gemini Model Selection
+Exclusively for Gemini, you can choose the specific model version in Settings:
+- **Gemini 2.5 Flash Lite** (Default) - Optimized for speed and free tier usage.
+
+### Get API Keys
+| Provider | Link |
+| :--- | :--- |
+| Google Gemini | [aistudio.google.com](https://aistudio.google.com) |
+| OpenAI | [platform.openai.com](https://platform.openai.com) |
+| Anthropic Claude | [console.anthropic.com](https://console.anthropic.com) |
+
+> ⚠️ **Privacy Note**: Cloud providers send your code to external servers. Use local mode for sensitive projects.
+
+---
+
 ## Settings
 
 Click **Settings** in the toolbar to configure:
 
 | Setting | Options | Description |
 | :--- | :--- | :--- |
-| **Context Size** | 1K, 2K, 4K, 8K | Larger = more code analyzed, more RAM |
-| **Max Response** | 128, 256, 512, 1024 | Maximum tokens the AI will generate |
+| **AI Provider** | Local, Gemini, OpenAI, Claude | Choose inference engine |
+| **Gemini Model** | 2.5 Flash Lite | Specific model version (Gemini only) |
+| **Context Size** | 2K, 4K, 8K, 16K, 32K | Larger = more code analyzed, more RAM |
+| **Max Response** | 512, 1024, 2048, 4096, 8192 | Maximum tokens the AI will generate |
+
+## Improved UI Features
+- **Selectable Text**: Response text can now be selected and copied (Read-only text field).
+- **Persistent Actions**: "Copy" and "Clear" buttons are always visible in the header.
+- **Smart Status**: Status bar indicates the active model (Local vs Cloud).
 
 ---
 
@@ -79,17 +114,18 @@ Click **Settings** in the toolbar to configure:
 Assets/LocalAI/
 ├── Editor/
 │   ├── Services/
+│   │   ├── IInferenceService.cs     # Common interface for all providers
+│   │   ├── InferenceService.cs      # Local llama.cpp inference
+│   │   ├── GeminiInferenceService.cs  # Google Gemini API
+│   │   ├── OpenAIInferenceService.cs  # OpenAI API
+│   │   ├── ClaudeInferenceService.cs  # Anthropic Claude API
+│   │   ├── LocalAISettings.cs       # User preferences & API keys
 │   │   ├── ModelManager.cs          # Model state & download
-│   │   ├── ModelDownloadService.cs  # HTTP resume support
-│   │   ├── InferenceService.cs      # Token generation loop
-│   │   ├── ContextCollector.cs      # Editor context gathering
-│   │   └── LocalAISettings.cs       # User preferences
+│   │   └── ...
 │   ├── UI/
-│   │   ├── LocalAIEditorWindow.cs   # Main window
-│   │   ├── SettingsView.cs          # Settings panel
-│   │   ├── ContextView.cs           # Context & manual input
-│   │   ├── ResponseView.cs          # AI response display
-│   │   └── ActionBarView.cs         # Action buttons
+│   │   ├── SettingsView.cs          # Settings + provider selection
+│   │   ├── ActionBarView.cs         # Provider-aware actions
+│   │   └── ...
 │   └── Setup/
 │       └── NativeSetup.cs           # Binary installer
 ├── Runtime/
@@ -126,5 +162,5 @@ MIT — Use it, modify it, ship it.
 ---
 
 <p align="center">
-  <i>Built with ❤️, C#, and way too much coffee.</i> ☕
+  <i>Built with C#, and way too much coffee.</i> ☕
 </p>
