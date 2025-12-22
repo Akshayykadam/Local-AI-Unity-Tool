@@ -19,6 +19,7 @@ namespace LocalAI.Editor.UI
         private readonly Button _btnExplainError;
         private readonly Button _btnExplainCode;
         private readonly Button _btnGenerate;
+        private readonly Button _btnAnalyze;
         private readonly Button _btnCancel;
 
         private CancellationTokenSource _cts;
@@ -39,12 +40,14 @@ namespace LocalAI.Editor.UI
             _btnExplainError = root.Q<Button>("btn-explain-error");
             _btnExplainCode = root.Q<Button>("btn-explain-code");
             _btnGenerate = root.Q<Button>("btn-generate");
+            _btnAnalyze = root.Q<Button>("btn-analyze");
             _btnCancel = root.Q<Button>("btn-cancel");
 
             _btnAsk.clicked += () => StartInference("Question:");
             _btnExplainError.clicked += () => StartInference("Explain the following error context:");
             _btnExplainCode.clicked += () => StartInference("Explain this code:");
             _btnGenerate.clicked += () => StartInference("Generate a script for:");
+            _btnAnalyze.clicked += AnalyzeScene;
             
             _btnCancel.clicked += CancelInference;
 
@@ -100,11 +103,13 @@ namespace LocalAI.Editor.UI
             _btnExplainError.SetEnabled(safe);
             _btnExplainCode.SetEnabled(safe);
             _btnGenerate.SetEnabled(safe);
+            _btnAnalyze.SetEnabled(safe);
             
             _btnAsk.tooltip = tooltip;
             _btnExplainError.tooltip = tooltip;
             _btnExplainCode.tooltip = tooltip;
             _btnGenerate.tooltip = tooltip;
+            _btnAnalyze.tooltip = tooltip;
 
             if (showDownload && provider == AIProvider.Local)
             {
@@ -143,7 +148,14 @@ namespace LocalAI.Editor.UI
             };
         }
 
-        private async void StartInference(string prefix)
+        private void AnalyzeScene()
+        {
+             string report = SceneAnalyzer.AnalyzeCurrentScene();
+             // We pass the report as the context override
+             StartInference("SceneAnalysis: Analyze this Unity Scene Report.", report);
+        }
+
+        private async void StartInference(string prefix, string contextOverride = null)
         {
              // Cleanup hack
              _btnGenerate.clicked -= DownloadModel;
@@ -164,14 +176,12 @@ namespace LocalAI.Editor.UI
 
              _cts = new CancellationTokenSource();
              
-             _btnAsk.style.display = DisplayStyle.None;
-             _btnExplainError.style.display = DisplayStyle.None;
-             _btnExplainCode.style.display = DisplayStyle.None;
-             _btnGenerate.style.display = DisplayStyle.None;
-             _btnCancel.style.display = DisplayStyle.Flex;
+              _btnGenerate.style.display = DisplayStyle.None;
+              _btnAnalyze.style.display = DisplayStyle.None;
+              _btnCancel.style.display = DisplayStyle.Flex;
 
-             _responseView.SetText("");
-             string context = _contextView.GetContext();
+              _responseView.SetText("");
+              string context = contextOverride ?? _contextView.GetContext();
              
              string fullPrompt;
              if (provider == AIProvider.Local)
@@ -199,6 +209,7 @@ namespace LocalAI.Editor.UI
              _btnExplainError.style.display = DisplayStyle.Flex;
              _btnExplainCode.style.display = DisplayStyle.Flex;
              _btnGenerate.style.display = DisplayStyle.Flex;
+             _btnAnalyze.style.display = DisplayStyle.Flex;
              _btnCancel.style.display = DisplayStyle.None;
              
              UpdateButtonStates();

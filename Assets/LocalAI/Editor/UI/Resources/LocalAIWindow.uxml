@@ -47,6 +47,7 @@
                  <ui:Button name="btn-explain-error" text="Explain Error" class="action-btn" />
                  <ui:Button name="btn-explain-code" text="Explain Code" class="action-btn" />
                  <ui:Button name="btn-generate" text="Generate" class="action-btn" />
+                 <ui:Button name="btn-analyze" text="Analyze Scene" class="action-btn" />
                  <ui:Button name="btn-cancel" text="Cancel" class="action-btn cancel-btn" style="display: none;" />
             </ui:VisualElement>
 

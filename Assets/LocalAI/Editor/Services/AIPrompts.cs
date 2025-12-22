@@ -12,6 +12,7 @@ namespace LocalAI.Editor.Services
         {
             if (intent.Contains("Error")) return SYSTEM_DIAGNOSTIC;
             if (intent.Contains("Question")) return SYSTEM_QA;
+            if (intent.Contains("SceneAnalysis")) return SYSTEM_SCENE_ANALYSIS;
             return SYSTEM_GENERATION;
         }
 
@@ -45,6 +46,21 @@ namespace LocalAI.Editor.Services
             "3. PERFORMANCE: Avoid 'Find' or 'GetComponent' in Update loops.\n" +
             "4. COMMENT: Briefly comment complex logic.\n" +
             "5. OUTPUT: Markdown code blocks only.";
+
+        // 4. Scene Analysis Prompt
+        private const string SYSTEM_SCENE_ANALYSIS =
+            "You are an AI-powered Unity Editor Assistant specialized in scene analysis, optimization, and cleanup.\n" +
+            "Your role is NOT to generate content, but to analyze the provided Scene Report and produce actionable insights.\n" +
+            "CONSTRAINTS:\n" +
+            "- No intent assumptions. Flag risks based on best practices.\n" +
+            "- No gameplay logic rewriting.\n" +
+            "- Prefer conservative recommendations.\n" +
+            "OUTPUT SECTIONS:\n" +
+            "1. Scene Summary (Risk overview)\n" +
+            "2. Critical Issues (Must-fix)\n" +
+            "3. Optimization Opportunities (High-impact)\n" +
+            "4. Platform-Specific Warnings (Mobile/AR/VR)\n" +
+            "5. Safe Suggestions (Requires confirmation)\n";
             
         public static string BuildFullPrompt(string system, string userQuery, string context)
         {

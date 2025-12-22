@@ -200,6 +200,20 @@ namespace LocalAI.Editor.Services
 
             try
             {
+                // Validation: Check if library exists to avoid crash
+                string pluginPath = Application.dataPath + "/LocalAI/Plugins/";
+                bool libExists = false;
+#if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
+                libExists = System.IO.File.Exists(pluginPath + "macOS/libllama.dylib");
+#elif UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
+                libExists = System.IO.File.Exists(pluginPath + "Windows/llama.dll");
+#endif
+                if (!libExists)
+                {
+                    Debug.LogError("[LocalAI] Native libraries not found! Please go to Tools > Local AI > Install Native Libraries.");
+                    return false;
+                }
+
                 Debug.Log("[LocalAI] Initializing llama backend...");
                 LLMNativeBridge.llama_backend_init();
 

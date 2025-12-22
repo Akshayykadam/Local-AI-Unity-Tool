@@ -9,9 +9,7 @@
 
 ---
 ## Preview
-![Screen Recording 2025-12-22 at 10 42 13 PM](https://github.com/user-attachments/assets/ccdf2bb0-7090-40f6-b145-96c980e52517)
-
-
+![ScreenRecording2025-12-22at10 31 48PM-ezgif com-video-to-gif-converter](https://github.com/user-attachments/assets/2e8187e5-79ad-4e5b-8ab9-ccde35563e84)
 
 ## Features
 
@@ -30,9 +28,11 @@
 ## Quick Start
 
 ### 1. Install Native Libraries
+### 1. Install Native Libraries
 > **Tools → Local AI → Install Native Libraries**
 
-Downloads `llama.cpp` binaries (~50MB) to `Assets/LocalAI/Plugins/`.
+Downloads `llama.cpp` binaries to `Assets/LocalAI/Plugins/`.
+**Required** for local inference.
 
 ### 2. Download AI Model
 > **Tools → Local AI Assistant → Settings → Download Model**
@@ -52,6 +52,14 @@ Downloads **Mistral 7B Instruct (Q4_K_M)** (~4GB):
    - **Generate**: Generates new code using your selection as a reference.
 4. **Copy** the result.
 
+### 4. Analyze Scene
+> **Tools → Local AI Assistant → Analyze Scene**
+
+Generates a comprehensive report of your current scene, flagging:
+- Performance risks (Polycount, Draw calls)
+- Cleanup opportunities (Empty objects, Missing scripts)
+- Platform-specific warnings (Mobile/VR)
+
 > **Tip**: Toggle "Include Selection Context" in the UI to control if the AI sees your selection.
 
 ---
@@ -60,6 +68,7 @@ Downloads **Mistral 7B Instruct (Q4_K_M)** (~4GB):
 | Feature | Description |
 | :--- | :--- |
 | **Ask Button** | [NEW] Dedicated Q&A mode for general Unity questions. |
+| **Scene Analyzer** | [NEW] One-click scene performance and hygiene analysis. |
 | **Smart Context** | [NEW] Select objects/scripts to automatically analyze them. |
 | **Log Integration** | [NEW] Import Console errors (stack trace + message) into context. |
 | **Visual Limits** | [NEW] Real-time usage bar and dynamic safety limits. |
