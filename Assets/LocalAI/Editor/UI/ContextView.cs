@@ -11,9 +11,9 @@ namespace LocalAI.Editor.UI
         private readonly Label _selectionSummary;
         private readonly TextField _manualInput;
         private readonly Toggle _includeSelectionToggle;
+        private readonly Toggle _includeLogsToggle; // [NEW] Explicit declaration
         private readonly VisualElement _contextContainer;
         
-        // Removed old "context-text" label support as we are using a robust manual+auto flow
         private readonly ProgressBar _usageBar;
         private readonly Label _usageLabel;
         private ContextData _cachedData;
@@ -27,59 +27,78 @@ namespace LocalAI.Editor.UI
             
             if (_contextContainer == null) return;
             
-            // Clear existing
             _contextContainer.Clear();
+            _contextContainer.style.paddingLeft = 4;
+            _contextContainer.style.paddingRight = 4;
+            _contextContainer.style.paddingTop = 4;
             
-            // 1. Selection Summary
+            // 1. Header Row (Selected + Stats)
+            var header = new VisualElement();
+            header.style.flexDirection = FlexDirection.Row;
+            header.style.justifyContent = Justify.SpaceBetween;
+            header.style.marginBottom = 2;
+            
             _selectionSummary = new Label("Selected: None");
             _selectionSummary.style.unityFontStyleAndWeight = FontStyle.Bold;
-            _contextContainer.Add(_selectionSummary);
-            
-            // 2. Usage Stats (NEW)
-            var statsContainer = new VisualElement();
-            statsContainer.style.flexDirection = FlexDirection.Row;
-            statsContainer.style.marginTop = 2;
-            statsContainer.style.marginBottom = 8;
-            statsContainer.style.height = 14;
-            
-            _usageBar = new ProgressBar();
-            _usageBar.style.flexGrow = 1;
-            _usageBar.style.marginRight = 5;
-            _usageBar.lowValue = 0;
-            _usageBar.highValue = 100;
+            _selectionSummary.style.flexShrink = 1;
             
             _usageLabel = new Label("0 / 4000");
             _usageLabel.style.fontSize = 10;
-            _usageLabel.style.width = 80;
-            _usageLabel.style.unityTextAlign = TextAnchor.MiddleRight;
+            _usageLabel.style.color = new Color(0.7f, 0.7f, 0.7f);
             
-            statsContainer.Add(_usageBar);
-            statsContainer.Add(_usageLabel);
-            _contextContainer.Add(statsContainer);
+            header.Add(_selectionSummary);
+            header.Add(_usageLabel);
+            _contextContainer.Add(header);
             
-            // 3. Toggle "Include Selection"
-            _includeSelectionToggle = new Toggle("Include Selection Context");
+            // 2. Usage Bar (Full Width)
+            _usageBar = new ProgressBar();
+            _usageBar.style.height = 6;
+            _usageBar.style.marginBottom = 6;
+            _usageBar.style.marginTop = 0;
+            // Hack to hide internal label if sticking out
+            
+            _contextContainer.Add(_usageBar);
+            
+            // 3. Toggles Row
+            var togglesRow = new VisualElement();
+            togglesRow.style.flexDirection = FlexDirection.Row;
+            togglesRow.style.marginBottom = 6;
+            
+            _includeSelectionToggle = new Toggle("Include Selection");
             _includeSelectionToggle.value = true;
+            _includeSelectionToggle.style.marginRight = 15;
             _includeSelectionToggle.RegisterValueChangedCallback(evt => OnSelectionChanged());
-            _contextContainer.Add(_includeSelectionToggle);
             
-            // 4. Manual Input
-            var inputLabel = new Label("User Input (Question / Instructions):");
+            _includeLogsToggle = new Toggle("Include Logs");
+            _includeLogsToggle.value = false;
+            _includeLogsToggle.RegisterValueChangedCallback(evt => OnSelectionChanged());
+            
+            togglesRow.Add(_includeSelectionToggle);
+            togglesRow.Add(_includeLogsToggle);
+            _contextContainer.Add(togglesRow);
+            
+            // 4. Input
+            var inputLabel = new Label("User Input:");
             inputLabel.style.fontSize = 11;
+            inputLabel.style.marginBottom = 2;
             _contextContainer.Add(inputLabel);
 
             _manualInput = new TextField();
             _manualInput.multiline = true;
             _manualInput.style.flexGrow = 1;
-            _manualInput.style.minHeight = 100;
+            _manualInput.style.minHeight = 80;
             _manualInput.style.whiteSpace = WhiteSpace.PreWrap;
-            _manualInput.style.backgroundColor = new Color(0.17f, 0.17f, 0.17f);
+            _manualInput.style.backgroundColor = new Color(0.15f, 0.15f, 0.15f);
+            _manualInput.style.borderTopLeftRadius = 3;
+            _manualInput.style.borderBottomRightRadius = 3;
             
             _contextContainer.Add(_manualInput);
             
-            // Hook Events
+            // Hook
             Selection.selectionChanged += OnSelectionChanged;
-            OnSelectionChanged(); // Init
+            
+            // Deferred init
+            _contextContainer.schedule.Execute(OnSelectionChanged);
         }
 
         private void OnSelectionChanged()
@@ -91,9 +110,14 @@ namespace LocalAI.Editor.UI
             else _selectionSummary.text = $"Selected: {count} items";
 
             // Update Context Data
-            if (_includeSelectionToggle.value)
+            // We include logs if specific toggle is on OR if user wants full context?
+            // Usually logs are part of context.
+            
+            if (_includeSelectionToggle.value || _includeLogsToggle.value)
             {
-                _cachedData = _collector.CollectContext();
+                // Pass the log toggle value
+                bool includeLogs = _includeLogsToggle.value;
+                _cachedData = _collector.CollectContext(includeLogs);
                 UpdateUsageStats();
                 OnContextUpdated?.Invoke(_cachedData);
             }
@@ -110,7 +134,7 @@ namespace LocalAI.Editor.UI
         {
             float percent = (float)_cachedData.TotalChars / _cachedData.MaxChars * 100f;
             _usageBar.value = percent;
-            _usageBar.title = $"{_cachedData.TotalChars} chars"; // Warning: Unity ProgressBar doesn't always show title
+            
             _usageLabel.text = $"{_cachedData.TotalChars} / {_cachedData.MaxChars}";
             
             if (_cachedData.IsTruncated)

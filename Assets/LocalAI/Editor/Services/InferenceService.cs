@@ -154,8 +154,8 @@ namespace LocalAI.Editor.Services
                             break;
                         }
 
-                        // Debug Output
-                        Debug.Log($"[LocalAI] Token: {nextToken}, MaxLogit: {maxVal}, Piece: '{TokenToPiece(nextToken)}'");
+                        // Debug Output (Verbose) - Disabled for performance
+                        // Debug.Log($"[LocalAI] Token: {nextToken}, MaxLogit: {maxVal}, Piece: '{TokenToPiece(nextToken)}'");
 
                         // Detokenize & Report
                         string piece = TokenToPiece(nextToken);

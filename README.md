@@ -64,8 +64,9 @@ Downloads **Mistral 7B Instruct (Q4_K_M)** (~4GB):
 | :--- | :--- |
 | **Ask Button** | [NEW] Dedicated Q&A mode for general Unity questions. |
 | **Smart Context** | [NEW] Select objects/scripts to automatically analyze them. |
-| **Visual Limits** | [NEW] Real-time usage bar (e.g. 2500/4000) with truncation warnings. |
-| **Safety Guard** | [NEW] Automatically disables actions if selection exceeds context limits. |
+| **Log Integration** | [NEW] Import Console errors (stack trace + message) into context. |
+| **Visual Limits** | [NEW] Real-time usage bar and dynamic safety limits. |
+| **Safety Guard** | [NEW] Actions disabled if selection exceeds limits. |
 | **Local + Cloud AI** | Choose offline inference or cloud APIs (Gemini, OpenAI, Claude). |
 | **100% Private** | Local mode is fully offline. Cloud mode is opt-in. |
 | **Unity Native UI** | Matches Editor styling. Selectable text. |

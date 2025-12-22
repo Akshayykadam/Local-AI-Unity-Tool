@@ -176,44 +176,14 @@ namespace LocalAI.Editor.UI
              string fullPrompt;
              if (provider == AIProvider.Local)
              {
-                string systemPrompt = "";
-                 
-                 if (prefix.Contains("Error"))
-                 {
-                     // DIAGNOSTIC PROMPT
-                     systemPrompt = 
-                         "You are a specific, deterministic Unity 2021.3+ C# expert. Fix errors and explain why.\n" +
-                         "RULES:\n" +
-                         "1. RESPONSE FORMAT: Diagnosis (1 sentence) -> Fix (1 sentence) -> Code Block.\n" +
-                         "2. EXPLAIN WHY the error happened before fixing.\n" +
-                         "3. OUTPUT valid C# code.";
-                 }
-                 else if (prefix.Contains("Question"))
-                 {
-                     // Q&A PROMPT
-                     systemPrompt = 
-                         "You are a Unity C# Expert. Answer the user's question clearly and concisely.\n" +
-                         "RULES:\n" +
-                         "1. Explain the concept simply.\n" +
-                         "2. Provide a short C# code example to illustrate.\n" +
-                         "3. Do not invent APIs.";
-                 }
-                 else
-                 {
-                     // GENERIC / GENERATION PROMPT
-                     systemPrompt = 
-                         "You are a Unity C# Expert. Write clean, optimized scripts.\n" +
-                         "RULES:\n" +
-                         "1. Use standard Unity patterns (Awake, SerializeField).\n" +
-                         "2. Output only valid C# in markdown blocks.\n" +
-                         "3. Be concise.";
-                 }
-                 
-                 fullPrompt = $"[INST] {systemPrompt}\n\nTASK: {prefix}\n\nCONTEXT:\n{context} [/INST]";
+                 // Use centralized AIPrompts for better accuracy
+                 string systemPrompt = AIPrompts.GetSystemPrompt(prefix);
+                 fullPrompt = AIPrompts.BuildFullPrompt(systemPrompt, prefix, context);
              }
              else
              {
-                 // Plain prompt for cloud providers (they handle system prompts internally)
+                 // Plain prompt for cloud providers (Gemini/GPT handle system prompts differently or internally)
+                 // For now, cloud just gets text + context.
                  fullPrompt = $"{prefix}\n\n{context}";
              }
 

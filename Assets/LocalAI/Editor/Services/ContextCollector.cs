@@ -37,7 +37,8 @@ namespace LocalAI.Editor.Services
             // Convert to chars (Approx 3.5 chars per token is standard, using 3 for safety)
             return availableTokens * 3;
         }
-        public ContextData CollectContext()
+
+        public ContextData CollectContext(bool includeLogs = false)
         {
             int maxLimit = GetMaxTotalContext();
             
@@ -48,6 +49,17 @@ namespace LocalAI.Editor.Services
             };
             
             StringBuilder sb = new StringBuilder();
+            
+            // 0. Append Logs (if requested)
+            if (includeLogs)
+            {
+                string logs = LogCollector.GetCapturedLogs();
+                if (!string.IsNullOrEmpty(logs))
+                {
+                    sb.AppendLine(logs);
+                    sb.AppendLine("---");
+                }
+            }
             
             // 1. Project Assets (Scripts, Prefabs, Folders)
             Object[] selectedObjects = Selection.objects;
