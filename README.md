@@ -8,12 +8,9 @@
 > **AI coding assistant for Unity Editor with local and cloud AI options.**
 
 ---
-## UI
-<img src="https://github.com/user-attachments/assets/8c980b9d-7314-4f2f-95d0-c6ce46985ebf" width="190" />
-<img src="https://github.com/user-attachments/assets/aa3e8902-b645-4ba6-989c-e74efb066e3f" width="190" />
-<img src="https://github.com/user-attachments/assets/775d31e5-ca43-47c8-9561-77e14856d41e" width="190" />
-<img src="https://github.com/user-attachments/assets/d64f9237-63a7-43a7-8973-f638a2435d0a" width="190" />
-<img src="https://github.com/user-attachments/assets/32c53892-e9ff-42cb-97fe-669f50dfddd8" width="190" />
+## Preview
+![ScreenRecording2025-12-22at10 31 48PM-ezgif com-video-to-gif-converter](https://github.com/user-attachments/assets/2e8187e5-79ad-4e5b-8ab9-ccde35563e84)
+
 
 
 ## Features
