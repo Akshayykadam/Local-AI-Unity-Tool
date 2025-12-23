@@ -28,7 +28,6 @@
 ## Quick Start
 
 ### 1. Install Native Libraries
-### 1. Install Native Libraries
 > **Tools → Local AI → Install Native Libraries**
 
 Downloads `llama.cpp` binaries to `Assets/LocalAI/Plugins/`.
@@ -50,6 +49,7 @@ Downloads **Mistral 7B Instruct (Q4_K_M)** (~4GB):
    - **Explain Error**: Fixes errors relevant to your selection.
    - **Explain Code**: Explains the selected script or object logic.
    - **Generate**: Generates new code using your selection as a reference.
+   - **Write Tests**: Generates NUnit unit tests for selected C# scripts.
 4. **Copy** the result.
 
 ### 4. Analyze Scene
@@ -62,12 +62,24 @@ Generates a comprehensive report of your current scene, flagging:
 
 > **Tip**: Toggle "Include Selection Context" in the UI to control if the AI sees your selection.
 
+### 5. Write Unit Tests
+> **Select a C# script → Click "Write Tests"**
+
+Generates NUnit unit tests for selected scripts:
+- Follows **Arrange-Act-Assert** pattern
+- Tests happy paths, edge cases, and boundary conditions
+- Uses proper naming: `MethodName_Scenario_ExpectedResult`
+- Creates tests compatible with Unity Test Runner
+
+> **Tip**: Copy the generated tests to `Assets/Tests/Editor/YourScriptTests.cs`
+
 ---
 
 ## Features
 | Feature | Description |
 | :--- | :--- |
 | **Ask Button** | [NEW] Dedicated Q&A mode for general Unity questions. |
+| **Write Tests** | [NEW] AI-powered unit test generation for selected C# scripts. |
 | **Scene Analyzer** | [NEW] One-click scene performance and hygiene analysis. |
 | **Smart Context** | [NEW] Select objects/scripts to automatically analyze them. |
 | **Log Integration** | [NEW] Import Console errors (stack trace + message) into context. |
