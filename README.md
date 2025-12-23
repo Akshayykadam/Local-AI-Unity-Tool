@@ -21,6 +21,13 @@
 | **100% Private (Local)** | Local mode - all processing on your machine |
 | **C# Code Only** | AI generates only C#/Unity code |
 
+<img src="https://github.com/user-attachments/assets/d1c9c2dd-243d-4c36-8945-c15b665bd063" width="180" />
+<img src="https://github.com/user-attachments/assets/2c158764-e918-43fb-a404-a79862a41028" width="180" />
+<img src="https://github.com/user-attachments/assets/9d6d4cf6-224c-4a57-83da-c705b371e962" width="180" />
+<img src="https://github.com/user-attachments/assets/fb74575e-3caa-4976-a115-ad0cc08292d6" width="180" />
+<img src="https://github.com/user-attachments/assets/e067bbb8-d08b-4176-9793-41a9eda9d359" width="180" />
+
+
 ---
 
 ## Quick Start
