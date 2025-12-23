@@ -1,4 +1,5 @@
 using System.Threading;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 using LocalAI.Editor.Services;
@@ -19,8 +20,11 @@ namespace LocalAI.Editor.UI
         private readonly Button _btnExplainError;
         private readonly Button _btnExplainCode;
         private readonly Button _btnGenerate;
+        private readonly Button _btnWriteTests;
         private readonly Button _btnAnalyze;
         private readonly Button _btnCancel;
+
+        private readonly UnitTestGenerator _testGenerator;
 
         private CancellationTokenSource _cts;
 
@@ -40,13 +44,17 @@ namespace LocalAI.Editor.UI
             _btnExplainError = root.Q<Button>("btn-explain-error");
             _btnExplainCode = root.Q<Button>("btn-explain-code");
             _btnGenerate = root.Q<Button>("btn-generate");
+            _btnWriteTests = root.Q<Button>("btn-write-tests");
             _btnAnalyze = root.Q<Button>("btn-analyze");
             _btnCancel = root.Q<Button>("btn-cancel");
+            
+            _testGenerator = new UnitTestGenerator();
 
             _btnAsk.clicked += () => StartInference("Question:");
             _btnExplainError.clicked += () => StartInference("Explain the following error context:");
             _btnExplainCode.clicked += () => StartInference("Explain this code:");
             _btnGenerate.clicked += () => StartInference("Generate a script for:");
+            _btnWriteTests.clicked += StartTestGeneration;
             _btnAnalyze.clicked += AnalyzeScene;
             
             _btnCancel.clicked += CancelInference;
@@ -103,12 +111,14 @@ namespace LocalAI.Editor.UI
             _btnExplainError.SetEnabled(safe);
             _btnExplainCode.SetEnabled(safe);
             _btnGenerate.SetEnabled(safe);
+            _btnWriteTests.SetEnabled(safe);
             _btnAnalyze.SetEnabled(safe);
             
             _btnAsk.tooltip = tooltip;
             _btnExplainError.tooltip = tooltip;
             _btnExplainCode.tooltip = tooltip;
             _btnGenerate.tooltip = tooltip;
+            _btnWriteTests.tooltip = tooltip;
             _btnAnalyze.tooltip = tooltip;
 
             if (showDownload && provider == AIProvider.Local)
@@ -151,8 +161,23 @@ namespace LocalAI.Editor.UI
         private void AnalyzeScene()
         {
              string report = SceneAnalyzer.AnalyzeCurrentScene();
-             // We pass the report as the context override
              StartInference("SceneAnalysis: Analyze this Unity Scene Report.", report);
+        }
+
+        private void StartTestGeneration()
+        {
+            if (!_testGenerator.ValidateSelection(out MonoScript script, out string error))
+            {
+                _responseView.SetText($"[Error] {error}\n\nPlease select a C# script (.cs file) in the Project window.");
+                return;
+            }
+
+            string testPrompt = _testGenerator.BuildTestPrompt(script);
+            string suggestedPath = _testGenerator.GetTestFilePath(script);
+            
+            _responseView.SetText($"Generating tests for: {script.name}\nSuggested path: {suggestedPath}\n\n");
+            
+            StartInference("UnitTest: ", testPrompt);
         }
 
         private async void StartInference(string prefix, string contextOverride = null)

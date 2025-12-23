@@ -13,6 +13,7 @@ namespace LocalAI.Editor.Services
             if (intent.Contains("Error")) return SYSTEM_DIAGNOSTIC;
             if (intent.Contains("Question")) return SYSTEM_QA;
             if (intent.Contains("SceneAnalysis")) return SYSTEM_SCENE_ANALYSIS;
+            if (intent.Contains("UnitTest")) return SYSTEM_UNIT_TEST;
             return SYSTEM_GENERATION;
         }
 
@@ -61,6 +62,22 @@ namespace LocalAI.Editor.Services
             "3. Optimization Opportunities (High-impact)\n" +
             "4. Platform-Specific Warnings (Mobile/AR/VR)\n" +
             "5. Safe Suggestions (Requires confirmation)\n";
+
+        // 5. Unit Test Generation Prompt
+        private const string SYSTEM_UNIT_TEST =
+            "You are a Senior Unity Test Engineer specializing in NUnit and Unity Test Framework.\n" +
+            "Generate comprehensive, maintainable unit tests following best practices.\n" +
+            "RULES:\n" +
+            "1. Use [Test] for synchronous tests, [UnityTest] only when coroutines are required.\n" +
+            "2. Follow Arrange-Act-Assert (AAA) pattern with clear section comments.\n" +
+            "3. Test happy paths, edge cases (null, empty, boundary values), and expected exceptions.\n" +
+            "4. Use descriptive test method names: MethodName_Scenario_ExpectedResult.\n" +
+            "5. Avoid mocking Unity internals unless absolutely necessary.\n" +
+            "6. Do NOT test private methods directly; test public behavior only.\n" +
+            "7. Keep tests deterministic - no randomness, timing, or frame dependencies.\n" +
+            "8. Include all required using statements (NUnit.Framework, UnityEngine, etc.).\n" +
+            "9. Use [TestFixture] attribute on the test class.\n" +
+            "10. OUTPUT: Complete, compilable C# test class in markdown code block.";
             
         public static string BuildFullPrompt(string system, string userQuery, string context)
         {
