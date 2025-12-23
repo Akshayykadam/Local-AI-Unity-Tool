@@ -33,6 +33,7 @@ namespace LocalAI.Editor.UI
         private VisualElement _chatTab;
         private VisualElement _searchTab;
         private VisualElement _analyzeTab;
+        private VisualElement _actionsTab;
         private VisualElement _refactorTab;
         private VisualElement _settingsTab;
 
@@ -70,6 +71,7 @@ namespace LocalAI.Editor.UI
             CreateChatTab();
             CreateSearchTab();
             CreateAnalyzeTab();
+            CreateActionsTab();
             CreateRefactorTab();
             CreateSettingsTab();
             
@@ -77,6 +79,7 @@ namespace LocalAI.Editor.UI
             _tabSystem.AddTab("", "Chat", "chat", _chatTab);
             _tabSystem.AddTab("", "Search", "search", _searchTab);
             _tabSystem.AddTab("", "Analyze", "analyze", _analyzeTab);
+            _tabSystem.AddTab("", "Actions", "actions", _actionsTab);
             _tabSystem.AddTab("", "Refactor", "refactor", _refactorTab);
             _tabSystem.AddTab("", "Settings", "settings", _settingsTab);
             
@@ -168,6 +171,11 @@ namespace LocalAI.Editor.UI
             var btnCopy = new Button { name = "btn-copy", text = "Copy" };
             btnCopy.AddToClassList("header-btn");
             responseActions.Add(btnCopy);
+            
+            var btnApply = new Button { name = "btn-apply", text = "Apply" };
+            btnApply.AddToClassList("header-btn");
+            btnApply.style.backgroundColor = new Color(0.2f, 0.4f, 0.2f);
+            responseActions.Add(btnApply);
             
             var btnClear = new Button { name = "btn-clear", text = "Clear" };
             btnClear.AddToClassList("header-btn");
@@ -338,6 +346,19 @@ namespace LocalAI.Editor.UI
                 string report = SceneAnalyzer.AnalyzeCurrentScene();
                 resultsText.text = report;
             }
+        }
+
+        private void CreateActionsTab()
+        {
+            _actionsTab = new VisualElement();
+            _actionsTab.style.flexGrow = 1;
+            _actionsTab.style.flexDirection = FlexDirection.Column;
+            _actionsTab.style.paddingTop = 4;
+            _actionsTab.style.paddingLeft = 4;
+            _actionsTab.style.paddingRight = 4;
+            
+            // Initialize ActionsView (it builds its own UI)
+            var actionsView = new ActionsView(_actionsTab);
         }
 
         private void CreateRefactorTab()

@@ -13,20 +13,19 @@
 
 | Feature | Description |
 | :--- | :--- |
-| **Tabbed Interface** | Clean horizontal tabs: Chat, Search, Analyze, Refactor, Settings |
-| **Code Refactoring** | [NEW] Rename symbols, find references, call hierarchy |
+| **Tabbed Interface** | Horizontal tabs: Chat, Search, Analyze, Actions, Refactor, Settings |
+| **Actions Tab** | [NEW] Execute commands, quick actions, templates |
+| **Code Refactoring** | Rename symbols, find references, call hierarchy |
 | **Project Search** | Semantic code search - ask questions about your codebase |
 | **Scene Analyzer** | One-click scene performance and hygiene analysis |
 | **Local + Cloud AI** | Offline local inference or cloud APIs (Gemini, OpenAI, Claude) |
 | **100% Private (Local)** | Local mode - all processing on your machine |
-| **C# Code Only** | AI generates only C#/Unity code |
 
 <img src="https://github.com/user-attachments/assets/d1c9c2dd-243d-4c36-8945-c15b665bd063" width="180" />
 <img src="https://github.com/user-attachments/assets/2c158764-e918-43fb-a404-a79862a41028" width="180" />
 <img src="https://github.com/user-attachments/assets/9d6d4cf6-224c-4a57-83da-c705b371e962" width="180" />
 <img src="https://github.com/user-attachments/assets/fb74575e-3caa-4976-a115-ad0cc08292d6" width="180" />
 <img src="https://github.com/user-attachments/assets/e067bbb8-d08b-4176-9793-41a9eda9d359" width="180" />
-
 
 ---
 
@@ -51,12 +50,37 @@
 | **Chat** | Ask questions, explain code, generate scripts |
 | **Search** | Semantic search through your codebase |
 | **Analyze** | Scene performance and hygiene report |
+| **Actions** | Execute commands directly in scene (Experimental) |
 | **Refactor** | Code navigation and refactoring tools |
 | **Settings** | Configure AI provider and preferences |
 
 ---
 
-## Refactor Tab (New!)
+## Actions Tab (Experimental)
+
+Execute commands directly in your Unity scene.
+
+### Features
+- **Command Input**: Type commands like "Create a Cube at (0, 5, 0)"
+- **Quick Actions**: One-click buttons for primitives, components, materials
+- **Templates**: Pre-built setups (FPS Player, Physics Cube, Enemy, etc.)
+- **Smart Suggestions**: Context-aware actions based on selection
+
+### Templates
+| Template | What it creates |
+|----------|----------------|
+| FPS Player | Capsule + CharacterController |
+| Third Person Player | Capsule + Rigidbody + Collider |
+| Physics Cube | Cube + Rigidbody |
+| Bouncy Ball | Sphere + Rigidbody |
+| Point Light | Empty + Light component |
+| Basic Enemy | Capsule + Rigidbody + Collider |
+| Trigger Zone | Cube + BoxCollider |
+| Audio Source | Empty + AudioSource |
+
+---
+
+## Refactor Tab
 
 Navigate and refactor your codebase with safety checks.
 
@@ -73,12 +97,6 @@ Navigate and refactor your codebase with safety checks.
 | Low | Safe local change |
 | Medium | Affects public API or serialized data |
 | High | Unity magic methods (blocked) |
-
-### How to Use
-1. Switch to **Refactor** tab
-2. Click **Build Index** to scan your project
-3. Search for a symbol
-4. Select and use navigation/refactoring actions
 
 ---
 
@@ -99,20 +117,17 @@ Navigate and refactor your codebase with safety checks.
 Assets/LocalAI/
 ├── Editor/
 │   ├── Services/
-│   │   ├── IInferenceService.cs
-│   │   ├── InferenceService.cs        # Local llama.cpp
-│   │   ├── GeminiInferenceService.cs
+│   │   ├── ActionExecutor.cs          # Scene action execution
+│   │   ├── CommandParser.cs           # Natural language parsing
+│   │   ├── CommandTemplates.cs        # Pre-built templates
+│   │   ├── ScriptApplicator.cs        # Apply AI-generated code
 │   │   ├── SemanticSearch/            # Project Search
 │   │   └── Refactoring/               # Code Navigation
-│   │       ├── CodeAnalyzer.cs
-│   │       ├── SymbolResolver.cs
-│   │       ├── RefactoringSafetyChecker.cs
-│   │       └── RefactoringOperations.cs
 │   └── UI/
 │       ├── LocalAIEditorWindow.cs
-│       ├── TabSystem.cs
-│       ├── RefactorView.cs
-│       └── ProjectSearchView.cs
+│       ├── ActionsView.cs             # Actions tab
+│       ├── RefactorView.cs            # Refactor tab
+│       └── TabSystem.cs
 └── Plugins/
     └── (libllama.dylib / llama.dll)
 ```

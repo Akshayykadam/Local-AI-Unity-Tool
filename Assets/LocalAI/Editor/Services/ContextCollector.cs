@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace LocalAI.Editor.Services
 {
@@ -38,7 +39,7 @@ namespace LocalAI.Editor.Services
             return availableTokens * 3;
         }
 
-        public ContextData CollectContext(bool includeLogs = false)
+        public ContextData CollectContext(bool includeLogs = false, bool includeSceneInfo = true)
         {
             int maxLimit = GetMaxTotalContext();
             
@@ -50,7 +51,13 @@ namespace LocalAI.Editor.Services
             
             StringBuilder sb = new StringBuilder();
             
-            // 0. Append Logs (if requested)
+            // 0. Editor State
+            if (includeSceneInfo)
+            {
+                AppendEditorState(sb);
+            }
+            
+            // 1. Append Logs (if requested)
             if (includeLogs)
             {
                 string logs = LogCollector.GetCapturedLogs();
@@ -61,7 +68,7 @@ namespace LocalAI.Editor.Services
                 }
             }
             
-            // 1. Project Assets (Scripts, Prefabs, Folders)
+            // 2. Project Assets (Scripts, Prefabs, Folders)
             Object[] selectedObjects = Selection.objects;
             
             // Prioritize Active GameObject if in Hierarchy and NOT in Project
@@ -112,7 +119,13 @@ namespace LocalAI.Editor.Services
                 sb.AppendLine("[No Active Selection]");
             }
             
-            // 2. Check Limits
+            // 3. Scene Hierarchy Summary (if room)
+            if (includeSceneInfo && sb.Length < maxLimit - 500)
+            {
+                AppendSceneHierarchy(sb, maxLimit - sb.Length);
+            }
+            
+            // 4. Check Limits
             if (sb.Length > maxLimit)
             {
                 data.IsTruncated = true;
@@ -127,6 +140,88 @@ namespace LocalAI.Editor.Services
 
             data.TotalChars = data.FullText.Length;
             return data;
+        }
+
+        /// <summary>
+        /// Collects enhanced context with scene hierarchy and editor state.
+        /// </summary>
+        public ContextData CollectEnhancedContext(bool includeLogs = false)
+        {
+            return CollectContext(includeLogs, includeSceneInfo: true);
+        }
+
+        private void AppendEditorState(StringBuilder sb)
+        {
+            sb.AppendLine("[Editor State]");
+            sb.AppendLine($"Scene: {SceneManager.GetActiveScene().name}");
+            sb.AppendLine($"Play Mode: {EditorApplication.isPlaying}");
+            sb.AppendLine($"Platform: {EditorUserBuildSettings.activeBuildTarget}");
+            
+            // Layers
+            sb.Append("Layers: ");
+            var layers = new List<string>();
+            for (int i = 0; i < 32; i++)
+            {
+                string layer = LayerMask.LayerToName(i);
+                if (!string.IsNullOrEmpty(layer)) layers.Add(layer);
+            }
+            sb.AppendLine(string.Join(", ", layers.Take(10)));
+            
+            // Tags
+            sb.AppendLine($"Tags: {string.Join(", ", UnityEditorInternal.InternalEditorUtility.tags.Take(10))}");
+            sb.AppendLine("---");
+        }
+
+        private void AppendSceneHierarchy(StringBuilder sb, int remainingChars)
+        {
+            sb.AppendLine("[Scene Hierarchy]");
+            
+            var rootObjects = SceneManager.GetActiveScene().GetRootGameObjects();
+            int count = 0;
+            
+            foreach (var root in rootObjects)
+            {
+                if (sb.Length > remainingChars) break;
+                
+                AppendGameObjectHierarchy(sb, root, 0, ref count, 20);
+            }
+            
+            if (count >= 20)
+            {
+                sb.AppendLine("... (more objects in scene)");
+            }
+            sb.AppendLine("---");
+        }
+
+        private void AppendGameObjectHierarchy(StringBuilder sb, GameObject go, int depth, ref int count, int maxCount)
+        {
+            if (count >= maxCount) return;
+            
+            string indent = new string(' ', depth * 2);
+            string components = string.Join(", ", go.GetComponents<Component>()
+                .Where(c => c != null && !(c is Transform))
+                .Select(c => c.GetType().Name)
+                .Take(3));
+            
+            if (!string.IsNullOrEmpty(components))
+            {
+                sb.AppendLine($"{indent}{go.name} [{components}]");
+            }
+            else
+            {
+                sb.AppendLine($"{indent}{go.name}");
+            }
+            count++;
+            
+            // Recurse children (limited depth)
+            if (depth < 2)
+            {
+                foreach (Transform child in go.transform)
+                {
+                    if (count >= maxCount) break;
+                    AppendGameObjectHierarchy(sb, child.gameObject, depth + 1, ref count, maxCount);
+                }
+            }
         }
 
         private void ExtractGameObject(GameObject go, StringBuilder sb)
@@ -249,3 +344,4 @@ namespace LocalAI.Editor.Services
         }
     }
 }
+
