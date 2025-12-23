@@ -50,14 +50,14 @@ namespace LocalAI.Editor.UI
             
             _testGenerator = new UnitTestGenerator();
 
-            _btnAsk.clicked += () => StartInference("Question:");
-            _btnExplainError.clicked += () => StartInference("Explain the following error context:");
-            _btnExplainCode.clicked += () => StartInference("Explain this code:");
-            _btnGenerate.clicked += () => StartInference("Generate a script for:");
-            _btnWriteTests.clicked += StartTestGeneration;
-            _btnAnalyze.clicked += AnalyzeScene;
-            
-            _btnCancel.clicked += CancelInference;
+            // Wire up buttons with null checks (some may not exist in tabbed UI)
+            if (_btnAsk != null) _btnAsk.clicked += () => StartInference("Question:");
+            if (_btnExplainError != null) _btnExplainError.clicked += () => StartInference("Explain the following error context:");
+            if (_btnExplainCode != null) _btnExplainCode.clicked += () => StartInference("Explain this code:");
+            if (_btnGenerate != null) _btnGenerate.clicked += () => StartInference("Generate a script for:");
+            if (_btnWriteTests != null) _btnWriteTests.clicked += StartTestGeneration;
+            if (_btnAnalyze != null) _btnAnalyze.clicked += AnalyzeScene;
+            if (_btnCancel != null) _btnCancel.clicked += CancelInference;
 
             _modelManager.OnStateChanged += OnModelStateChanged;
             _contextView.OnContextUpdated += OnContextUpdated;
@@ -107,36 +107,35 @@ namespace LocalAI.Editor.UI
                 tooltip = provider == AIProvider.Local ? "Model not ready" : "API Key missing";
             }
             
-            _btnAsk.SetEnabled(safe);
-            _btnExplainError.SetEnabled(safe);
-            _btnExplainCode.SetEnabled(safe);
-            _btnGenerate.SetEnabled(safe);
-            _btnWriteTests.SetEnabled(safe);
-            _btnAnalyze.SetEnabled(safe);
+            // Apply to buttons with null checks
+            if (_btnAsk != null) { _btnAsk.SetEnabled(safe); _btnAsk.tooltip = tooltip; }
+            if (_btnExplainError != null) { _btnExplainError.SetEnabled(safe); _btnExplainError.tooltip = tooltip; }
+            if (_btnExplainCode != null) { _btnExplainCode.SetEnabled(safe); _btnExplainCode.tooltip = tooltip; }
+            if (_btnWriteTests != null) { _btnWriteTests.SetEnabled(safe); _btnWriteTests.tooltip = tooltip; }
+            if (_btnAnalyze != null) { _btnAnalyze.SetEnabled(safe); _btnAnalyze.tooltip = tooltip; }
             
-            _btnAsk.tooltip = tooltip;
-            _btnExplainError.tooltip = tooltip;
-            _btnExplainCode.tooltip = tooltip;
-            _btnGenerate.tooltip = tooltip;
-            _btnWriteTests.tooltip = tooltip;
-            _btnAnalyze.tooltip = tooltip;
-
-            if (showDownload && provider == AIProvider.Local)
+            if (_btnGenerate != null)
             {
-                _btnGenerate.text = "Download Model";
-                _btnGenerate.SetEnabled(true);
-                _btnGenerate.tooltip = "Download required model (4GB)";
-                _btnGenerate.clicked -= DownloadModel;
-                _btnGenerate.clicked += DownloadModel;
-            }
-            else if (!ready && provider != AIProvider.Local && !_isContextTruncated)
-            {
-                _btnGenerate.text = "Configure API Key";
-                _btnGenerate.SetEnabled(false);
-            }
-            else
-            {
-                _btnGenerate.text = "Generate";
+                _btnGenerate.SetEnabled(safe);
+                _btnGenerate.tooltip = tooltip;
+                
+                if (showDownload && provider == AIProvider.Local)
+                {
+                    _btnGenerate.text = "Download Model";
+                    _btnGenerate.SetEnabled(true);
+                    _btnGenerate.tooltip = "Download required model (4GB)";
+                    _btnGenerate.clicked -= DownloadModel;
+                    _btnGenerate.clicked += DownloadModel;
+                }
+                else if (!ready && provider != AIProvider.Local && !_isContextTruncated)
+                {
+                    _btnGenerate.text = "Configure API Key";
+                    _btnGenerate.SetEnabled(false);
+                }
+                else
+                {
+                    _btnGenerate.text = "Generate";
+                }
             }
         }
 
@@ -201,9 +200,10 @@ namespace LocalAI.Editor.UI
 
              _cts = new CancellationTokenSource();
              
-              _btnGenerate.style.display = DisplayStyle.None;
-              _btnAnalyze.style.display = DisplayStyle.None;
-              _btnCancel.style.display = DisplayStyle.Flex;
+             // Hide action buttons, show cancel (with null checks)
+             if (_btnGenerate != null) _btnGenerate.style.display = DisplayStyle.None;
+             if (_btnAnalyze != null) _btnAnalyze.style.display = DisplayStyle.None;
+             if (_btnCancel != null) _btnCancel.style.display = DisplayStyle.Flex;
 
               _responseView.SetText("");
               string context = contextOverride ?? _contextView.GetContext();
@@ -230,12 +230,13 @@ namespace LocalAI.Editor.UI
              IInferenceService service = GetActiveService();
              await service.StartInferenceAsync(fullPrompt, progress, _cts.Token);
 
-             _btnAsk.style.display = DisplayStyle.Flex;
-             _btnExplainError.style.display = DisplayStyle.Flex;
-             _btnExplainCode.style.display = DisplayStyle.Flex;
-             _btnGenerate.style.display = DisplayStyle.Flex;
-             _btnAnalyze.style.display = DisplayStyle.Flex;
-             _btnCancel.style.display = DisplayStyle.None;
+             // Restore buttons after inference (with null checks)
+             if (_btnAsk != null) _btnAsk.style.display = DisplayStyle.Flex;
+             if (_btnExplainError != null) _btnExplainError.style.display = DisplayStyle.Flex;
+             if (_btnExplainCode != null) _btnExplainCode.style.display = DisplayStyle.Flex;
+             if (_btnGenerate != null) _btnGenerate.style.display = DisplayStyle.Flex;
+             if (_btnAnalyze != null) _btnAnalyze.style.display = DisplayStyle.Flex;
+             if (_btnCancel != null) _btnCancel.style.display = DisplayStyle.None;
              
              UpdateButtonStates();
         }

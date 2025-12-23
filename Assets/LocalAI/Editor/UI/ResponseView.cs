@@ -14,30 +14,30 @@ namespace LocalAI.Editor.UI
             _responseContainer = root.Q<VisualElement>("response-container");
             _responseText = root.Q<TextField>("response-text");
             _scroll = root.Q<ScrollView>("response-scroll");
-            var actionsContainer = root.Q<VisualElement>("response-actions");
             
-            if (_responseContainer == null || actionsContainer == null) return;
-            
-            // Copy Response button
-            var copyBtn = new Button(() => 
+            // Wire up Copy button if it exists
+            var copyBtn = root.Q<Button>("btn-copy");
+            if (copyBtn != null)
             {
-                if (_responseText != null) 
+                copyBtn.clicked += () =>
                 {
-                    GUIUtility.systemCopyBuffer = _responseText.value;
-                    Debug.Log("[LocalAI] Response copied to clipboard!");
-                }
-            }) { text = "Copy" };
-            copyBtn.AddToClassList("panel-header-btn");
+                    if (_responseText != null) 
+                    {
+                        GUIUtility.systemCopyBuffer = _responseText.value;
+                        Debug.Log("[LocalAI] Response copied to clipboard!");
+                    }
+                };
+            }
             
-            // Clear Response button
-            var clearBtn = new Button(() => 
+            // Wire up Clear button if it exists
+            var clearBtn = root.Q<Button>("btn-clear");
+            if (clearBtn != null)
             {
-                if (_responseText != null) _responseText.value = "Select code and click an action below.";
-            }) { text = "Clear" };
-            clearBtn.AddToClassList("panel-header-btn");
-            
-            actionsContainer.Add(copyBtn);
-            actionsContainer.Add(clearBtn);
+                clearBtn.clicked += () =>
+                {
+                    if (_responseText != null) _responseText.value = "Select code and click an action below.";
+                };
+            }
         }
 
         public void SetText(string text)

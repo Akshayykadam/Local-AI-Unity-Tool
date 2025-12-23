@@ -1,332 +1,277 @@
-/* LocalAIStyles.uss - Unity Editor Native Style */
+/* Local AI Unity Tool - Native Unity Styling with Horizontal Tabs */
 
+/* ===== Root ===== */
 .root {
     flex-grow: 1;
-    background-color: #383838;
 }
 
-/* Header - matches Unity toolbar */
+/* ===== Header ===== */
 .header {
-    height: 26px; /* Increased from 22px */
-    background-color: #3c3c3c;
+    height: 22px;
     flex-direction: row;
     align-items: center;
-    padding-left: 8px;
-    padding-right: 8px; /* Increased padding */
+    padding: 0 8px;
     border-bottom-width: 1px;
     border-bottom-color: #232323;
+    flex-shrink: 0;
+}
+
+.header-title {
+    font-size: 11px;
+    -unity-font-style: bold;
 }
 
 .header-btn {
-    height: 20px; /* Increased from 18px */
-    font-size: 11px;
-    padding: 1px 8px;
+    height: 16px;
+    font-size: 10px;
+    padding: 1px 6px;
     margin-left: 4px;
-    margin-right: 4px;
-}
-
-/* Action Bar - Unity button style */
-.action-bar {
-    flex-direction: row;
-    padding: 4px 0;
-    margin-bottom: 4px;
-    flex-shrink: 0; /* CRITICAL: Prevent buttons from being squashed */
-    min-height: 30px;
 }
 
 .status-indicator {
     width: 8px;
     height: 8px;
     border-radius: 4px;
-    background-color: #666666;
     margin-right: 6px;
+    background-color: #666666;
 }
 
-.status-indicator.downloading { background-color: #f4bc02; }
-.status-indicator.ready { background-color: #8dc63f; }
-.status-indicator.error { background-color: #cf3a3a; }
+.status-indicator.ready { background-color: #4a8c4a; }
+.status-indicator.downloading { background-color: #c4a000; }
+.status-indicator.error { background-color: #a83232; }
 
-.header-title {
-    font-size: 12px;
-    color: #c4c4c4;
-    flex-grow: 1;
-    -unity-font-style: normal;
+/* ===== Horizontal Tab Bar ===== */
+.tab-bar {
+    flex-direction: row;
+    height: 24px;
+    border-bottom-width: 1px;
+    border-bottom-color: #232323;
+    padding: 0 4px;
+    flex-shrink: 0;
 }
 
-/* Removed duplicate header-btn */
+.tab-btn {
+    height: 24px;
+    min-width: 60px;
+    padding: 0 12px;
+    margin-right: 2px;
+    border-width: 0;
+    border-radius: 0;
+    background-color: transparent;
+    font-size: 11px;
+    -unity-text-align: middle-center;
+}
 
-/* Content Area */
-.content-wrapper {
+.tab-btn:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.tab-btn-active {
+    background-color: #383838;
+    border-bottom-width: 2px;
+    border-bottom-color: #4a90d9;
+}
+
+/* ===== Content Area ===== */
+.content-area {
     flex-grow: 1;
+    padding: 6px;
     flex-direction: column;
-    padding: 4px;
 }
 
-/* Panels - Unity Inspector style */
+/* ===== Panels ===== */
 .panel {
-    background-color: #3c3c3c;
-    border-radius: 3px;
-    margin-bottom: 4px;
     border-width: 1px;
-    border-color: #232323;
+    border-color: #303030;
+    border-radius: 2px;
+    margin-bottom: 4px;
 }
 
-/* Shared Panel Header */
 .panel-header {
     flex-direction: row;
     align-items: center;
-    background-color: #333333;
+    background-color: #383838;
     border-bottom-width: 1px;
-    border-bottom-color: #232323;
-    border-top-left-radius: 3px;
-    border-top-right-radius: 3px;
-    padding: 2px 4px;
-    height: 24px;
+    border-bottom-color: #303030;
+    padding: 3px 6px;
+    height: 20px;
 }
 
-/* Standalone Title (e.g. Settings) */
-.panel-title {
-    font-size: 12px;
-    color: #c4c4c4;
-    -unity-font-style: bold;
-    padding: 4px 8px;
-    background-color: #333333;
-    border-bottom-width: 1px;
-    border-bottom-color: #232323;
-    border-top-left-radius: 3px;
-    border-top-right-radius: 3px;
-}
-
-/* Label inside .panel-header row */
 .panel-header-label {
-    font-size: 12px;
-    color: #c4c4c4;
-    -unity-font-style: bold;
-    flex-grow: 1;
-    padding: 0 4px; /* minimal padding since header handles it */
-}
-
-.panel-header-btn {
-    height: 18px;
-    padding: 0 8px;
-    margin-left: 4px;
     font-size: 10px;
-    background-color: #444444;
-    border-width: 0;
+    -unity-font-style: bold;
 }
 
-.panel-header-btn:hover {
-    background-color: #555555;
-}
-
-/* Response Panel */
+/* ===== Response Panel ===== */
 .response-panel {
     flex-grow: 1;
     flex-shrink: 1;
-    min-height: 100px;
-    overflow: hidden;
+    min-height: 80px;
 }
 
 .scroll-area {
     flex-grow: 1;
-    flex-shrink: 1;
-    padding: 6px 8px;
-    overflow: hidden;
+    padding: 4px 6px;
 }
 
 .response-text {
-    font-size: 12px;
+    font-size: 11px;
     background-color: transparent;
     border-width: 0;
     margin: 0;
     padding: 0;
+    white-space: normal;
+    flex-grow: 1;
 }
 
 .response-text > .unity-text-field__input {
     background-color: transparent;
     border-width: 0;
-    color: #b4b4b4;
-    white-space: normal; /* Ensure wrapping */
+    white-space: normal;
     padding: 0;
 }
 
-.response-footer {
+/* ===== Action Bar ===== */
+.action-bar {
     flex-direction: row;
-    padding: 6px;
-    border-top-width: 1px;
-    border-top-color: #232323;
+    flex-wrap: wrap;
+    padding: 4px 0;
     flex-shrink: 0;
-    min-height: 36px;
+    gap: 3px;
 }
-
-/* Context Panel */
-.context-panel {
-    flex-shrink: 0;
-    max-height: 180px;
-    min-height: 100px;
-}
-
-.context-text {
-    font-size: 11px;
-    color: #888888;
-    white-space: normal;
-}
-
-/* Removed duplicate action-bar */
 
 .action-btn {
-    flex-grow: 1;
-    height: 22px;
-    margin: 0 2px;
-    font-size: 11px;
+    height: 20px;
+    min-width: 60px;
+    padding: 1px 8px;
+    font-size: 10px;
+}
+
+.action-btn-primary {
+    background-color: #2c5d87;
+}
+
+.action-btn-primary:hover {
+    background-color: #346a96;
 }
 
 .cancel-btn {
-    background-color: #5a3535;
+    background-color: #6b3a3a;
 }
 
 .cancel-btn:hover {
-    background-color: #6a4545;
+    background-color: #7a4a4a;
 }
 
-/* Settings Panel */
-.settings-panel {
-    flex-grow: 1;
-    display: none;
-    background-color: #383838;
-    padding: 8px;
+/* ===== Context Panel ===== */
+.context-panel {
+    flex-shrink: 0;
+    min-height: 50px;
+    max-height: 180px;
 }
 
-.settings-group {
-    margin-bottom: 12px;
-}
-
-.field-label {
-    font-size: 11px;
-    color: #888888;
-    margin-bottom: 4px;
-}
-
-.settings-footer {
-    flex-direction: row;
-    margin-top: 16px;
-    padding-top: 8px;
-    border-top-width: 1px;
-    border-top-color: #232323;
-}
-
-.danger-btn {
-    background-color: #5a3535;
-    color: #d4d4d4;
-}
-
-.danger-btn:hover {
-    background-color: #6a4545;
-}
-
-/* Unity Default Element Styling */
-Label {
-    color: #c4c4c4;
-    font-size: 12px;
-}
-
-Button {
-    background-color: #585858;
-    border-width: 1px;
-    border-color: #232323;
-    border-radius: 3px;
-    color: #e4e4e4;
-    padding: 2px 6px;
-    font-size: 11px;
-}
-
-Button:hover {
-    background-color: #656565;
-}
-
-Button:active {
-    background-color: #505050;
-}
-
-TextField {
-    background-color: #2a2a2a;
-    border-radius: 3px;
-    border-width: 1px;
-    border-color: #0d0d0d;
-    font-size: 11px;
-}
-
-TextField:focus {
-    border-color: #3a79bb;
-}
-
-Toggle {
-    color: #c4c4c4;
-    font-size: 12px;
-}
-
-ScrollView {
-    background-color: transparent;
-}
-
-/* Scrollbar styling */
-Scroller {
-    width: 12px;
-}
-
-/* ===== Semantic Search Styles ===== */
-
-.search-result-card {
-    background-color: #2a2a2a;
-    border-radius: 3px;
-    margin-bottom: 4px;
-    padding: 6px 8px;
-    border-width: 1px;
-    border-color: #1a1a1a;
-}
-
-.search-result-card:hover {
-    background-color: #333333;
-    border-color: #3a79bb;
-}
-
-.search-result-title {
-    font-size: 11px;
-    -unity-font-style: bold;
-    color: #d4d4d4;
-}
-
-.search-result-path {
+.context-text {
     font-size: 10px;
-    color: #6699cc;
-    margin-top: 2px;
-}
-
-.search-result-preview {
-    font-size: 10px;
-    color: #888888;
-    margin-top: 4px;
     white-space: normal;
 }
 
-.search-status-idle { background-color: #666666; }
-.search-status-indexing { background-color: #f4bc02; }
-.search-status-ready { background-color: #8dc63f; }
-.search-status-error { background-color: #cf3a3a; }
-
-ProgressBar {
-    height: 4px;
-    background-color: #2a2a2a;
+/* ===== Settings Styles ===== */
+.settings-section {
+    margin-bottom: 10px;
+    padding: 6px;
+    border-width: 1px;
+    border-color: #303030;
     border-radius: 2px;
 }
 
-ProgressBar > .unity-progress-bar__background {
-    background-color: #2a2a2a;
+.settings-section-title {
+    font-size: 11px;
+    -unity-font-style: bold;
+    margin-bottom: 6px;
+}
+
+.field-label {
+    font-size: 10px;
+    margin-bottom: 2px;
+}
+
+.danger-btn {
+    background-color: #6b3a3a;
+}
+
+.danger-btn:hover {
+    background-color: #7a4a4a;
+}
+
+/* ===== Analyze Tab ===== */
+.analyze-btn-large {
+    margin-top: 4px;
+    margin-bottom: 8px;
+    height: 24px;
+}
+
+/* ===== Search Styles ===== */
+.search-header {
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.search-input {
+    flex-grow: 1;
+    height: 20px;
+    margin-right: 4px;
+    font-size: 10px;
+}
+
+.search-result-card {
+    border-width: 1px;
+    border-color: #303030;
+    border-radius: 2px;
+    margin-bottom: 3px;
+    padding: 4px 6px;
+}
+
+.search-result-card:hover {
+    background-color: rgba(255, 255, 255, 0.03);
+}
+
+.search-result-title {
+    font-size: 10px;
+    -unity-font-style: bold;
+}
+
+.search-result-path {
+    font-size: 9px;
+    margin-top: 1px;
+}
+
+.search-result-snippet {
+    font-size: 9px;
+    margin-top: 3px;
+    padding: 3px 4px;
     border-radius: 2px;
 }
 
-ProgressBar > .unity-progress-bar__progress {
-    background-color: #3a79bb;
-    border-radius: 2px;
+.search-status {
+    font-size: 10px;
+    margin-bottom: 6px;
 }
 
+.search-status-ready { color: #6a9955; }
+.search-status-indexing { color: #dcdcaa; }
+.search-status-error { color: #f44747; }
+
+/* ===== Progress Bar ===== */
+.progress-container {
+    height: 3px;
+    border-radius: 1px;
+    margin: 4px 0;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    background-color: #2c5d87;
+    border-radius: 1px;
+}

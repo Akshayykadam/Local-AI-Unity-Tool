@@ -1,67 +1,22 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
     <Style src="LocalAIStyles.uss" />
     <ui:VisualElement name="root" class="root">
-        <!-- Header -->
+        <!-- Header Bar -->
         <ui:VisualElement name="header-container" class="header">
             <ui:VisualElement name="status-dot" class="status-indicator" />
-            <ui:Label name="model-label" text="Checking Model..." class="header-title" />
-            <ui:Button name="btn-project-search" text="🔍 Search" class="header-btn" />
-            <ui:Button name="btn-settings" text="Settings" class="header-btn" />
+            <ui:Label name="model-label" text="Local AI Assistant" class="header-title" />
+            <ui:VisualElement style="flex-grow: 1;" />
+            <ui:Label name="provider-label" text="" style="font-size: 10px;" />
         </ui:VisualElement>
 
-        <!-- Settings Panel -->
-        <ui:VisualElement name="settings-container" class="settings-panel">
-            <ui:Label text="Settings" class="panel-title" />
-            
-            <ui:VisualElement class="settings-group">
-                <ui:Label text="Model Storage Path" class="field-label" />
-                <ui:TextField name="field-model-path" readonly="true" />
-            </ui:VisualElement>
-            
-            <ui:VisualElement class="settings-group">
-                <ui:Toggle name="toggle-gpu" label="Enable GPU Acceleration (Metal)" value="true" />
-            </ui:VisualElement>
-            
-            <ui:VisualElement class="settings-footer">
-                <ui:Button name="btn-delete-model" text="Delete Model" class="danger-btn" />
-                <ui:VisualElement style="flex-grow: 1;" />
-                <ui:Button name="btn-close-settings" text="Close" />
-            </ui:VisualElement>
+        <!-- Horizontal Tab Bar -->
+        <ui:VisualElement name="tab-bar" class="tab-bar">
+            <!-- Tab buttons will be added programmatically -->
         </ui:VisualElement>
 
-        <!-- Main Content -->
-        <ui:VisualElement name="content-container" class="content-wrapper">
-            <!-- Response View -->
-            <ui:VisualElement name="response-container" class="panel response-panel">
-                <ui:VisualElement class="panel-header">
-                    <ui:Label text="Response" class="panel-header-label" />
-                    <ui:VisualElement name="response-actions" style="flex-direction: row;" />
-                </ui:VisualElement>
-                <ui:ScrollView name="response-scroll" class="scroll-area">
-                    <ui:TextField name="response-text" text="Select code and click an action below." class="response-text" multiline="true" readonly="true" />
-                </ui:ScrollView>
-            </ui:VisualElement>
-
-            <!-- Action Bar -->
-            <ui:VisualElement name="action-bar-container" class="action-bar">
-                 <ui:Button name="btn-ask" text="Ask" class="action-btn" />
-                 <ui:Button name="btn-explain-error" text="Explain Error" class="action-btn" />
-                 <ui:Button name="btn-explain-code" text="Explain Code" class="action-btn" />
-                 <ui:Button name="btn-generate" text="Generate" class="action-btn" />
-                 <ui:Button name="btn-write-tests" text="Write Tests" class="action-btn" />
-                 <ui:Button name="btn-analyze" text="Analyze Scene" class="action-btn" />
-                 <ui:Button name="btn-cancel" text="Cancel" class="action-btn cancel-btn" style="display: none;" />
-            </ui:VisualElement>
-
-            <!-- Context Panel -->
-            <ui:VisualElement name="context-container" class="panel context-panel">
-                 <ui:VisualElement class="panel-header">
-                     <ui:Label text="Context" class="panel-header-label" />
-                 </ui:VisualElement>
-                 <ui:ScrollView name="context-scroll" class="scroll-area" style="display: none;">
-                    <ui:Label name="context-text" text="No context selected." class="context-text" />
-                 </ui:ScrollView>
-            </ui:VisualElement>
+        <!-- Content Area -->
+        <ui:VisualElement name="content-area" class="content-area">
+            <!-- Tab contents will be added programmatically -->
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

@@ -279,7 +279,18 @@ namespace LocalAI.Editor.UI
             {
                 _progressBar.value = progress * 100f;
                 _progressBar.title = message;
-                _statusLabel.text = message;
+                
+                // Only update status label during active indexing
+                if (_index.State == IndexState.Indexing)
+                {
+                    _statusLabel.text = message;
+                }
+                
+                // When progress reaches 100%, call UpdateStatus to show proper final state
+                if (progress >= 1f)
+                {
+                    UpdateStatus();
+                }
             };
         }
         
