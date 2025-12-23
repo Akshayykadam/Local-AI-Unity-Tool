@@ -13,14 +13,13 @@
 
 | Feature | Description |
 | :--- | :--- |
-| **Tabbed Interface** | Clean horizontal tabs: Chat, Search, Analyze, Settings |
+| **Tabbed Interface** | Clean horizontal tabs: Chat, Search, Analyze, Refactor, Settings |
+| **Code Refactoring** | [NEW] Rename symbols, find references, call hierarchy |
 | **Project Search** | Semantic code search - ask questions about your codebase |
 | **Scene Analyzer** | One-click scene performance and hygiene analysis |
-| **Local + Cloud AI** | Choose between offline local inference or cloud APIs |
-| **100% Private (Local)** | Local mode - all processing happens on your machine |
-| **Unity Native UI** | Built with UI Toolkit, matches Unity Editor styling |
-| **C# Code Only** | AI generates only C#/Unity code, never Python |
-| **Log Integration** | Import Console errors into context for debugging |
+| **Local + Cloud AI** | Offline local inference or cloud APIs (Gemini, OpenAI, Claude) |
+| **100% Private (Local)** | Local mode - all processing on your machine |
+| **C# Code Only** | AI generates only C#/Unity code |
 
 ---
 
@@ -29,8 +28,6 @@
 ### 1. Install Native Libraries
 > **Tools → Local AI → Install Native Libraries**
 
-Downloads `llama.cpp` binaries. **Required for local inference.**
-
 ### 2. Open the Assistant
 > **Tools → Local AI Assistant**
 
@@ -38,60 +35,47 @@ Downloads `llama.cpp` binaries. **Required for local inference.**
 - **Local (Offline)**: Download the 4GB model in Settings tab
 - **Cloud**: Enter API key for Gemini, OpenAI, or Claude
 
-### 4. Use the Tabs
+---
+
+## Tabs Overview
 
 | Tab | Purpose |
 | :--- | :--- |
 | **Chat** | Ask questions, explain code, generate scripts |
 | **Search** | Semantic search through your codebase |
 | **Analyze** | Scene performance and hygiene report |
+| **Refactor** | Code navigation and refactoring tools |
 | **Settings** | Configure AI provider and preferences |
 
 ---
 
-## Chat Tab
+## Refactor Tab (New!)
 
-1. **Select** a GameObject or Script to give the AI context
-2. **Type your question** in the User Input field
-3. Click an action:
-   - **Ask**: General questions about the selection
-   - **Explain Error**: Fixes errors in your code
-   - **Explain Code**: Explains the selected script
-   - **Generate**: Creates new code
-   - **Tests**: Generates unit tests
-4. **Copy** the result
+Navigate and refactor your codebase with safety checks.
 
----
+### Features
+- **Symbol Search**: Find classes, methods, fields
+- **Go to Definition**: Jump to symbol declaration
+- **Find References**: List all usages across project
+- **Call Hierarchy**: See callers and callees
+- **Rename**: Rename with all reference updates and preview
 
-## Search Tab (Semantic Code Search)
-
-Search your codebase using natural language queries.
+### Safety System
+| Risk Level | Meaning |
+|------------|---------|
+| Low | Safe local change |
+| Medium | Affects public API or serialized data |
+| High | Unity magic methods (blocked) |
 
 ### How to Use
-1. Switch to **Search** tab
-2. Click **Re-Index** to build the index (first time only)
-3. Type a query like "Where is player movement handled?"
-4. Results show matching code with file paths and line numbers
-5. Click **Open** to jump to the code in your IDE
-
-### Configuration
-- **Indexed Folders**: Which folders to scan (default: `Assets/`)
-- **Max Files**: Limit for large projects (default: 5000)
-
-> Index stored in `Library/LocalAI/SemanticIndex/` and persists across sessions.
+1. Switch to **Refactor** tab
+2. Click **Build Index** to scan your project
+3. Search for a symbol
+4. Select and use navigation/refactoring actions
 
 ---
 
-## Analyze Tab
-
-Click **Analyze Current Scene** to get a comprehensive report:
-- Performance risks (Polycount, Draw calls)
-- Cleanup opportunities (Empty objects, Missing scripts)
-- Platform-specific warnings (Mobile/VR)
-
----
-
-## Settings Tab
+## Settings
 
 | Setting | Options | Description |
 | :--- | :--- | :--- |
@@ -99,26 +83,6 @@ Click **Analyze Current Scene** to get a comprehensive report:
 | **API Key** | (hidden for Local) | Cloud provider API key |
 | **Context Size** | 2K - 32K | Larger = more code analyzed |
 | **Max Response** | 512 - 8192 | Maximum tokens generated |
-
-### Get API Keys
-| Provider | Link |
-| :--- | :--- |
-| Google Gemini | [aistudio.google.com](https://aistudio.google.com) |
-| OpenAI | [platform.openai.com](https://platform.openai.com) |
-| Anthropic Claude | [console.anthropic.com](https://console.anthropic.com) |
-
-> ⚠️ **Privacy Note**: Cloud providers send your code to external servers. Use local mode for sensitive projects.
-
----
-
-## Tech Stack
-
-| Component | Technology |
-| :--- | :--- |
-| **UI** | Unity UI Toolkit (UXML/USS) |
-| **Backend** | C# with P/Invoke marshalling |
-| **Inference** | `llama.cpp` (ARM64/x64 native) |
-| **Model** | Mistral-7B-Instruct-v0.1-GGUF (Q4_K_M) |
 
 ---
 
@@ -128,27 +92,22 @@ Click **Analyze Current Scene** to get a comprehensive report:
 Assets/LocalAI/
 ├── Editor/
 │   ├── Services/
-│   │   ├── IInferenceService.cs        # Common interface
-│   │   ├── InferenceService.cs         # Local llama.cpp
-│   │   ├── GeminiInferenceService.cs   # Google Gemini API
-│   │   ├── OpenAIInferenceService.cs   # OpenAI API
-│   │   ├── ClaudeInferenceService.cs   # Anthropic Claude API
-│   │   ├── LocalAISettings.cs          # User preferences
-│   │   └── SemanticSearch/             # Project Search
-│   │       ├── SemanticIndex.cs        # Index coordinator
-│   │       ├── VectorStore.cs          # Vector storage
-│   │       └── RAGService.cs           # Query with LLM
-│   ├── UI/
-│   │   ├── LocalAIEditorWindow.cs      # Main window
-│   │   ├── TabSystem.cs                # Horizontal tabs
-│   │   ├── ProjectSearchView.cs        # Search UI
-│   │   └── Resources/
-│   │       ├── LocalAIWindow.uxml      # Layout
-│   │       └── LocalAIStyles.uss       # Styling
-│   └── Setup/
-│       └── NativeSetup.cs              # Binary installer
+│   │   ├── IInferenceService.cs
+│   │   ├── InferenceService.cs        # Local llama.cpp
+│   │   ├── GeminiInferenceService.cs
+│   │   ├── SemanticSearch/            # Project Search
+│   │   └── Refactoring/               # Code Navigation
+│   │       ├── CodeAnalyzer.cs
+│   │       ├── SymbolResolver.cs
+│   │       ├── RefactoringSafetyChecker.cs
+│   │       └── RefactoringOperations.cs
+│   └── UI/
+│       ├── LocalAIEditorWindow.cs
+│       ├── TabSystem.cs
+│       ├── RefactorView.cs
+│       └── ProjectSearchView.cs
 └── Plugins/
-    └── (libllama.dylib / llama.dll)    # Downloaded automatically
+    └── (libllama.dylib / llama.dll)
 ```
 
 ---
@@ -158,16 +117,6 @@ Assets/LocalAI/
 - **Unity 2021.3** or later
 - **RAM**: 8GB minimum, 16GB recommended
 - **Disk**: ~5GB (model + libraries)
-- **macOS**: Apple Silicon or Intel
-- **Windows**: x64 with AVX2 support
-
----
-
-## Known Limitations
-
-- **First Load**: Model takes 10-30 seconds to load initially
-- **Memory**: Uses ~6GB RAM during inference
-- **Context Recreation**: Each query recreates context (adds ~100ms)
 
 ---
 

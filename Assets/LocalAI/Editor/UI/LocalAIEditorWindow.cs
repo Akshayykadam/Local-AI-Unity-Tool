@@ -33,6 +33,7 @@ namespace LocalAI.Editor.UI
         private VisualElement _chatTab;
         private VisualElement _searchTab;
         private VisualElement _analyzeTab;
+        private VisualElement _refactorTab;
         private VisualElement _settingsTab;
 
         public void CreateGUI()
@@ -69,12 +70,14 @@ namespace LocalAI.Editor.UI
             CreateChatTab();
             CreateSearchTab();
             CreateAnalyzeTab();
+            CreateRefactorTab();
             CreateSettingsTab();
             
             // Add tabs (no emojis per user preference)
             _tabSystem.AddTab("", "Chat", "chat", _chatTab);
             _tabSystem.AddTab("", "Search", "search", _searchTab);
             _tabSystem.AddTab("", "Analyze", "analyze", _analyzeTab);
+            _tabSystem.AddTab("", "Refactor", "refactor", _refactorTab);
             _tabSystem.AddTab("", "Settings", "settings", _settingsTab);
             
             // Initialize header
@@ -335,6 +338,19 @@ namespace LocalAI.Editor.UI
                 string report = SceneAnalyzer.AnalyzeCurrentScene();
                 resultsText.text = report;
             }
+        }
+
+        private void CreateRefactorTab()
+        {
+            _refactorTab = new VisualElement();
+            _refactorTab.style.flexGrow = 1;
+            _refactorTab.style.flexDirection = FlexDirection.Column;
+            _refactorTab.style.paddingTop = 4;
+            _refactorTab.style.paddingLeft = 4;
+            _refactorTab.style.paddingRight = 4;
+            
+            // Initialize RefactorView (it builds its own UI)
+            var refactorView = new RefactorView(_refactorTab);
         }
 
         private void CreateSettingsTab()
