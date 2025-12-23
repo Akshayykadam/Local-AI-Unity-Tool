@@ -273,3 +273,60 @@ ScrollView {
 Scroller {
     width: 12px;
 }
+
+/* ===== Semantic Search Styles ===== */
+
+.search-result-card {
+    background-color: #2a2a2a;
+    border-radius: 3px;
+    margin-bottom: 4px;
+    padding: 6px 8px;
+    border-width: 1px;
+    border-color: #1a1a1a;
+}
+
+.search-result-card:hover {
+    background-color: #333333;
+    border-color: #3a79bb;
+}
+
+.search-result-title {
+    font-size: 11px;
+    -unity-font-style: bold;
+    color: #d4d4d4;
+}
+
+.search-result-path {
+    font-size: 10px;
+    color: #6699cc;
+    margin-top: 2px;
+}
+
+.search-result-preview {
+    font-size: 10px;
+    color: #888888;
+    margin-top: 4px;
+    white-space: normal;
+}
+
+.search-status-idle { background-color: #666666; }
+.search-status-indexing { background-color: #f4bc02; }
+.search-status-ready { background-color: #8dc63f; }
+.search-status-error { background-color: #cf3a3a; }
+
+ProgressBar {
+    height: 4px;
+    background-color: #2a2a2a;
+    border-radius: 2px;
+}
+
+ProgressBar > .unity-progress-bar__background {
+    background-color: #2a2a2a;
+    border-radius: 2px;
+}
+
+ProgressBar > .unity-progress-bar__progress {
+    background-color: #3a79bb;
+    border-radius: 2px;
+}
+

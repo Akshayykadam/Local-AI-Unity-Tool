@@ -5,6 +5,7 @@
         <ui:VisualElement name="header-container" class="header">
             <ui:VisualElement name="status-dot" class="status-indicator" />
             <ui:Label name="model-label" text="Checking Model..." class="header-title" />
+            <ui:Button name="btn-project-search" text="🔍 Search" class="header-btn" />
             <ui:Button name="btn-settings" text="Settings" class="header-btn" />
         </ui:VisualElement>
 

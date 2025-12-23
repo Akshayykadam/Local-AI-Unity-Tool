@@ -28,6 +28,7 @@
 ## Quick Start
 
 ### 1. Install Native Libraries
+### 1. Install Native Libraries
 > **Tools → Local AI → Install Native Libraries**
 
 Downloads `llama.cpp` binaries to `Assets/LocalAI/Plugins/`.
@@ -49,7 +50,6 @@ Downloads **Mistral 7B Instruct (Q4_K_M)** (~4GB):
    - **Explain Error**: Fixes errors relevant to your selection.
    - **Explain Code**: Explains the selected script or object logic.
    - **Generate**: Generates new code using your selection as a reference.
-   - **Write Tests**: Generates NUnit unit tests for selected C# scripts.
 4. **Copy** the result.
 
 ### 4. Analyze Scene
@@ -62,24 +62,13 @@ Generates a comprehensive report of your current scene, flagging:
 
 > **Tip**: Toggle "Include Selection Context" in the UI to control if the AI sees your selection.
 
-### 5. Write Unit Tests
-> **Select a C# script → Click "Write Tests"**
-
-Generates NUnit unit tests for selected scripts:
-- Follows **Arrange-Act-Assert** pattern
-- Tests happy paths, edge cases, and boundary conditions
-- Uses proper naming: `MethodName_Scenario_ExpectedResult`
-- Creates tests compatible with Unity Test Runner
-
-> **Tip**: Copy the generated tests to `Assets/Tests/Editor/YourScriptTests.cs`
-
 ---
 
 ## Features
 | Feature | Description |
 | :--- | :--- |
+| **🔍 Project Search** | [NEW] Semantic code search - ask questions about your codebase in natural language. |
 | **Ask Button** | [NEW] Dedicated Q&A mode for general Unity questions. |
-| **Write Tests** | [NEW] AI-powered unit test generation for selected C# scripts. |
 | **Scene Analyzer** | [NEW] One-click scene performance and hygiene analysis. |
 | **Smart Context** | [NEW] Select objects/scripts to automatically analyze them. |
 | **Log Integration** | [NEW] Import Console errors (stack trace + message) into context. |
@@ -90,6 +79,29 @@ Generates NUnit unit tests for selected scripts:
 | **Unity Native UI** | Matches Editor styling. Selectable text. |
 | **C# Code Only** | Optimized for Unity development. |
 | **Configurable** | Adjust model, context size, response length. |
+
+---
+
+## Project Search (Semantic Code Search)
+
+Search your codebase using natural language queries like "Where is player movement handled?" or "Find damage calculation logic".
+
+### How It Works
+1. Click **🔍 Search** in the header to open the Search panel
+2. Click **Re-Index** to build a semantic index of your project (first time only)
+3. Type a natural language query and press Enter
+4. Results show:
+   - **Matching code chunks** with file paths and line numbers
+   - **AI Summary** explaining the relevant code
+5. Click **Open** on any result to jump directly to that line in your IDE
+
+### Configuration
+In Settings:
+- **Indexed Folders**: Which folders to scan (default: `Assets/`)
+- **Max Files**: Limit for large projects (default: 5000)
+- **Auto Re-index**: Toggle automatic updates when files change
+
+> **Tip**: The index is stored in `Library/LocalAI/SemanticIndex/` and persists across sessions.
 
 ---
 
@@ -163,10 +175,17 @@ Assets/LocalAI/
 │   │   ├── ClaudeInferenceService.cs  # Anthropic Claude API
 │   │   ├── LocalAISettings.cs       # User preferences & API keys
 │   │   ├── ModelManager.cs          # Model state & download
-│   │   └── ...
+│   │   └── SemanticSearch/          # [NEW] Project Search feature
+│   │       ├── CSharpParser.cs      # Parse C# files
+│   │       ├── ProjectScanner.cs    # Scan project folders
+│   │       ├── EmbeddingService.cs  # Generate embeddings
+│   │       ├── VectorStore.cs       # Store & search vectors
+│   │       ├── SemanticIndex.cs     # Index coordinator
+│   │       └── RAGService.cs        # Query with LLM
 │   ├── UI/
 │   │   ├── SettingsView.cs          # Settings + provider selection
 │   │   ├── ActionBarView.cs         # Provider-aware actions
+│   │   ├── ProjectSearchView.cs     # [NEW] Search UI panel
 │   │   └── ...
 │   └── Setup/
 │       └── NativeSetup.cs           # Binary installer

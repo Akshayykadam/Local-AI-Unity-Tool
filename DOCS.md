@@ -533,6 +533,76 @@ Debug.Log($"[LocalAI] Creating context with {threads} threads...");
 
 ---
 
+## Semantic Search (Project Search)
+
+The Semantic Search feature allows developers to search their codebase using natural language queries.
+
+### Architecture
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    ProjectSearchView                     │
+│  [Search Input] [Re-Index] [Clear]                      │
+│  [Results List] [AI Summary]                            │
+└─────────────────────────────────────────────────────────┘
+                          │
+                          ▼
+┌─────────────────────────────────────────────────────────┐
+│                     SemanticIndex                        │
+│  Coordinates: Scanner → Parser → Chunker → Embedder     │
+└─────────────────────────────────────────────────────────┘
+                          │
+          ┌───────────────┼───────────────┐
+          ▼               ▼               ▼
+    ProjectScanner  CSharpParser    EmbeddingService
+          │               │               │
+          ▼               ▼               ▼
+    [File List]    [Code Chunks]    [Vectors]
+                          │               │
+                          └───────┬───────┘
+                                  ▼
+                            VectorStore
+                         (Binary Storage)
+```
+
+### Key Components
+
+| Component | Purpose |
+|-----------|---------|
+| `ProjectScanner` | Scans folders for .cs files, computes MD5 hashes |
+| `CSharpParser` | Extracts classes, methods, properties via regex |
+| `CodeChunker` | Splits large code blocks (max 512 tokens) |
+| `EmbeddingService` | Generates vectors via TF-IDF + code heuristics |
+| `VectorStore` | Binary file storage with cosine similarity search |
+| `SemanticIndex` | Orchestrates indexing pipeline |
+| `RAGService` | Combines search results with LLM reasoning |
+
+### Storage
+
+Index data is stored in `Library/LocalAI/SemanticIndex/`:
+- `vectors.bin` - Binary encoded embeddings
+- `index_cache.json` - File hashes for incremental updates
+
+### Query Flow
+
+1. User enters natural language query
+2. Query is embedded using `EmbeddingService`
+3. `VectorStore.Search()` finds top-K similar chunks
+4. `RAGService` builds prompt with retrieved context
+5. LLM generates summary/answer
+6. Results displayed with click-to-open functionality
+
+### Settings
+
+| Setting | Key | Default |
+|---------|-----|---------|
+| Max Files | `LocalAI_MaxIndexedFiles` | 5000 |
+| Max Chunk Size | `LocalAI_MaxChunkSize` | 512 tokens |
+| Auto Re-index | `LocalAI_AutoReindexOnChange` | false |
+| Indexed Folders | `LocalAI_IndexedFolders` | "Assets/" |
+
+---
+
 ## License
 
 MIT License - See LICENSE file for details.

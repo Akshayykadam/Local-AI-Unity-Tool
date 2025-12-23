@@ -145,7 +145,7 @@ namespace LocalAI.Editor.UI
             _modelManager.StartDownload();
         }
 
-        private IInferenceService GetActiveService()
+        public IInferenceService GetActiveService()
         {
             AIProvider provider = LocalAISettings.ActiveProvider;
             Debug.Log($"[LocalAI] GetActiveService - Provider: {provider}");

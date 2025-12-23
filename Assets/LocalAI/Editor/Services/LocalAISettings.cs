@@ -184,5 +184,79 @@ namespace LocalAI.Editor.Services
             }
             return 2; // Default to 2048 (Index 2)
         }
+        
+        // ===== Semantic Search Settings =====
+        
+        public const int DEFAULT_MAX_INDEXED_FILES = 5000;
+        public const int DEFAULT_MAX_CHUNK_SIZE = 512;
+        
+        /// <summary>
+        /// Maximum number of files to index for semantic search.
+        /// </summary>
+        public static int MaxIndexedFiles
+        {
+            get => EditorPrefs.GetInt(PREFIX + "MaxIndexedFiles", DEFAULT_MAX_INDEXED_FILES);
+            set => EditorPrefs.SetInt(PREFIX + "MaxIndexedFiles", value);
+        }
+        
+        /// <summary>
+        /// Maximum chunk size in tokens for semantic indexing.
+        /// </summary>
+        public static int MaxChunkSize
+        {
+            get => EditorPrefs.GetInt(PREFIX + "MaxChunkSize", DEFAULT_MAX_CHUNK_SIZE);
+            set => EditorPrefs.SetInt(PREFIX + "MaxChunkSize", value);
+        }
+        
+        /// <summary>
+        /// Whether to automatically re-index when files change.
+        /// </summary>
+        public static bool AutoReindexOnChange
+        {
+            get => EditorPrefs.GetBool(PREFIX + "AutoReindexOnChange", false);
+            set => EditorPrefs.SetBool(PREFIX + "AutoReindexOnChange", value);
+        }
+        
+        /// <summary>
+        /// Comma-separated list of folders to index (relative to project root).
+        /// </summary>
+        public static string IndexedFolders
+        {
+            get => EditorPrefs.GetString(PREFIX + "IndexedFolders", "Assets/");
+            set => EditorPrefs.SetString(PREFIX + "IndexedFolders", value);
+        }
+        
+        /// <summary>
+        /// Gets the indexed folders as a list of full paths.
+        /// </summary>
+        public static System.Collections.Generic.List<string> GetIndexedFoldersList()
+        {
+            var result = new System.Collections.Generic.List<string>();
+            string projectRoot = Application.dataPath.Replace("/Assets", "");
+            
+            string[] folders = IndexedFolders.Split(new[] { ',' }, System.StringSplitOptions.RemoveEmptyEntries);
+            foreach (string folder in folders)
+            {
+                string trimmed = folder.Trim();
+                if (string.IsNullOrEmpty(trimmed)) continue;
+                
+                if (System.IO.Path.IsPathRooted(trimmed))
+                {
+                    result.Add(trimmed);
+                }
+                else
+                {
+                    result.Add(System.IO.Path.Combine(projectRoot, trimmed));
+                }
+            }
+            
+            // Default to Assets/ if empty
+            if (result.Count == 0)
+            {
+                result.Add(Application.dataPath);
+            }
+            
+            return result;
+        }
     }
 }
