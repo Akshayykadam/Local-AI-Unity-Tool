@@ -56,17 +56,91 @@
 
 ---
 
-## Actions Tab (Experimental)
+## Chat Tab
 
-Execute commands directly in your Unity scene.
+Your AI coding assistant for Unity development.
 
 ### Features
-- **Command Input**: Type commands like "Create a Cube at (0, 5, 0)"
-- **Quick Actions**: One-click buttons for primitives, components, materials
-- **Templates**: Pre-built setups (FPS Player, Physics Cube, Enemy, etc.)
-- **Smart Suggestions**: Context-aware actions based on selection
+- **Ask Questions**: Get answers about Unity APIs, C# patterns, best practices
+- **Explain Code**: Select any script and ask AI to explain what it does
+- **Generate Scripts**: Describe what you need, AI generates complete C# scripts
+- **Fix Errors**: Paste console errors, AI suggests fixes
+- **Context Aware**: AI sees your selected scripts, GameObjects, and scene hierarchy
+
+### Actions
+| Button | What it does |
+|--------|--------------|
+| Ask | Send a custom question with selected context |
+| Explain | Explain the selected code |
+| Review | Code review with suggestions |
+| Optimize | Performance optimization suggestions |
+| Document | Generate XML documentation comments |
+| Fix Errors | Analyze console errors and suggest fixes |
+
+### Response Panel
+- **Copy**: Copy AI response to clipboard
+- **Apply**: Save AI-generated code directly to a script file
+- **Clear**: Clear the response
+
+---
+
+## Search Tab
+
+Semantic search across your entire codebase.
+
+### Features
+- **Natural Language Queries**: Ask "Where is player health managed?" instead of searching for keywords
+- **Project-Wide Index**: Indexes all C# scripts in your project
+- **Ranked Results**: Most relevant results shown first
+- **Click to Open**: Jump directly to the file and line
+
+### How to Use
+1. Click **Build Index** to scan your project scripts
+2. Type your question in the search box
+3. Click results to open files in your IDE
+
+---
+
+## Analyze Tab
+
+One-click scene performance and hygiene analysis.
+
+### What it Checks
+- **Performance Issues**: Large meshes, too many lights, expensive shaders
+- **Missing References**: Null references in components
+- **Inactive Objects**: Hidden objects that might be forgotten
+- **Best Practices**: Naming conventions, layer usage, tag consistency
+
+### Output
+Generates a detailed report with:
+- Issue severity (Warning, Error, Info)
+- Affected GameObject names
+- Suggested fixes
+
+---
+
+## Actions Tab (Experimental)
+
+Execute commands directly in your Unity scene without writing code.
+
+### Command Input
+Type natural language commands:
+- "Create a Cube at (0, 5, 0)"
+- "Add Rigidbody to selected"
+- "Create red material"
+
+### Quick Actions
+One-click buttons for common operations:
+
+| Category | Actions |
+|----------|---------|
+| **Primitives** | Cube, Sphere, Capsule, Cylinder, Plane |
+| **Components** | + Rigidbody, + BoxCollider, + Light, + AudioSource |
+| **Materials** | Red, Green, Blue, Yellow |
 
 ### Templates
+Pre-built setups that create multiple objects at once:
+
 | Template | What it creates |
 |----------|----------------|
 | FPS Player | Capsule + CharacterController |
@@ -78,36 +152,72 @@ Execute commands directly in your Unity scene.
 | Trigger Zone | Cube + BoxCollider |
 | Audio Source | Empty + AudioSource |
 
+### Smart Suggestions
+Context-aware action buttons that change based on your selection:
+- No selection → Create Cube, Sphere, Empty
+- Object with Renderer → Add Rigidbody, Add Collider, Apply Material
+- Light selected → Adjust intensity, change type
+
 ---
 
 ## Refactor Tab
 
 Navigate and refactor your codebase with safety checks.
 
-### Features
-- **Symbol Search**: Find classes, methods, fields
-- **Go to Definition**: Jump to symbol declaration
-- **Find References**: List all usages across project
-- **Call Hierarchy**: See callers and callees
-- **Rename**: Rename with all reference updates and preview
+### Navigation Features
+| Feature | Description |
+|---------|-------------|
+| **Symbol Search** | Find classes, methods, fields, properties by name |
+| **Go to Definition** | Jump to where a symbol is declared |
+| **Find References** | List all usages of a symbol across the project |
+| **Call Hierarchy** | See what methods call this method, and what it calls |
+
+### Refactoring Features
+| Feature | Description |
+|---------|-------------|
+| **Rename** | Rename symbols with all references updated |
+| **Preview** | Side-by-side diff before applying changes |
 
 ### Safety System
-| Risk Level | Meaning |
-|------------|---------|
-| Low | Safe local change |
-| Medium | Affects public API or serialized data |
-| High | Unity magic methods (blocked) |
+Protects against dangerous refactorings:
+
+| Risk Level | Meaning | Examples |
+|------------|---------|----------|
+| Low | Safe local change | Private methods, local variables |
+| Medium | Review recommended | Public APIs, SerializeField |
+| High | Blocked | Start(), Update(), OnCollisionEnter() |
+
+### How to Use
+1. Click **Build Index** to scan your project
+2. Search for a symbol name
+3. Click a result to select it
+4. Use navigation buttons (Go to Definition, Find References, etc.)
+5. For renaming: enter new name → Preview → Apply
 
 ---
 
-## Settings
+## Settings Tab
 
-| Setting | Options | Description |
-| :--- | :--- | :--- |
-| **AI Provider** | Local, Gemini, OpenAI, Claude | Choose inference engine |
-| **API Key** | (hidden for Local) | Cloud provider API key |
-| **Context Size** | 2K - 32K | Larger = more code analyzed |
-| **Max Response** | 512 - 8192 | Maximum tokens generated |
+Configure AI provider and generation parameters.
+
+### AI Provider
+| Provider | Description |
+|----------|-------------|
+| **Local** | Offline inference using llama.cpp (requires model download) |
+| **Gemini** | Google's Gemini API (requires API key) |
+| **OpenAI** | OpenAI GPT API (requires API key) |
+| **Claude** | Anthropic Claude API (requires API key) |
+
+### Parameters
+| Setting | Range | Description |
+|---------|-------|-------------|
+| **Context Size** | 2K - 32K | How much code context AI can see |
+| **Max Response** | 512 - 8192 | Maximum tokens in AI response |
+
+### Local Model
+- Click **Download Model** to get the 4GB AI model
+- Progress bar shows download status
+- Once downloaded, works completely offline
 
 ---
 
