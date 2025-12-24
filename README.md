@@ -14,7 +14,8 @@
 | Feature | Description |
 | :--- | :--- |
 | **Tabbed Interface** | Horizontal tabs: Chat, Search, Analyze, Actions, Refactor, Settings |
-| **Actions Tab** | [NEW] Execute commands, quick actions, templates |
+| **AI-Powered Actions** | [NEW] Describe complex setups - AI builds entire scenes |
+| **Actions Tab** | Quick actions, templates, smart suggestions |
 | **Code Refactoring** | Rename symbols, find references, call hierarchy |
 | **Project Search** | Semantic code search - ask questions about your codebase |
 | **Scene Analyzer** | One-click scene performance and hygiene analysis |
@@ -50,7 +51,7 @@
 | **Chat** | Ask questions, explain code, generate scripts |
 | **Search** | Semantic search through your codebase |
 | **Analyze** | Scene performance and hygiene report |
-| **Actions** | Execute commands directly in scene (Experimental) |
+| **Actions** | AI-powered scene building & quick actions (Experimental) |
 | **Refactor** | Code navigation and refactoring tools |
 | **Settings** | Configure AI provider and preferences |
 
@@ -122,6 +123,20 @@ Generates a detailed report with:
 ## Actions Tab (Experimental)
 
 Execute commands directly in your Unity scene without writing code.
+
+### 🤖 AI Actions (NEW)
+Describe complex setups in natural language - AI generates and executes all actions.
+
+**Example requests:**
+- "Create a first-person player with camera and movement"
+- "Build a physics playground with ramps and bouncy balls"
+- "Set up a simple enemy that patrols between waypoints"
+
+**Workflow:**
+1. Type your request in the AI Actions input
+2. Click "Ask AI" - AI generates an action plan
+3. Preview the actions before execution
+4. Click "Execute All" to build the setup
 
 ### Command Input
 Type natural language commands:
@@ -228,6 +243,7 @@ Assets/LocalAI/
 ├── Editor/
 │   ├── Services/
 │   │   ├── ActionExecutor.cs          # Scene action execution
+│   │   ├── AIActionService.cs         # AI-powered action generation
 │   │   ├── CommandParser.cs           # Natural language parsing
 │   │   ├── CommandTemplates.cs        # Pre-built templates
 │   │   ├── ScriptApplicator.cs        # Apply AI-generated code

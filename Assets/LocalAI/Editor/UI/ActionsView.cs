@@ -18,11 +18,23 @@ namespace LocalAI.Editor.UI
         private VisualElement _historyPanel;
         private Label _statusLabel;
         
+        // AI Actions
+        private TextField _aiInput;
+        private VisualElement _aiPreviewPanel;
+        private Label _aiStatusLabel;
+        private Button _executeAllBtn;
+        private Button _cancelBtn;
+        private AIActionService _aiActionService;
+        private List<AIAction> _pendingActions;
+        private bool _isProcessing;
+        
         private List<string> _commandHistory = new List<string>();
 
         public ActionsView(VisualElement root)
         {
             _root = root;
+            _aiActionService = new AIActionService();
+            _pendingActions = new List<AIAction>();
             BuildUI();
         }
 
@@ -100,6 +112,99 @@ namespace LocalAI.Editor.UI
             inputSection.Add(_statusLabel);
             
             _root.Add(inputSection);
+            
+            // AI Actions Section
+            var aiSection = CreateSection("🤖 AI Actions");
+            aiSection.style.borderLeftWidth = 2;
+            aiSection.style.borderLeftColor = new Color(0.4f, 0.6f, 0.9f);
+            
+            var aiDescription = new Label("Describe complex setups - AI generates all actions.");
+            aiDescription.style.fontSize = 9;
+            aiDescription.style.color = new Color(0.6f, 0.7f, 0.9f);
+            aiDescription.style.marginBottom = 6;
+            aiSection.Add(aiDescription);
+            
+            var aiInputRow = new VisualElement();
+            aiInputRow.style.flexDirection = FlexDirection.Row;
+            aiInputRow.style.marginBottom = 6;
+            
+            _aiInput = new TextField();
+            _aiInput.style.flexGrow = 1;
+            _aiInput.style.height = 24;
+            _aiInput.multiline = false;
+            _aiInput.value = "Create a player with movement controller and camera";
+            _aiInput.RegisterCallback<KeyDownEvent>(evt =>
+            {
+                if (evt.keyCode == KeyCode.Return || evt.keyCode == KeyCode.KeypadEnter)
+                {
+                    AskAI();
+                }
+            });
+            aiInputRow.Add(_aiInput);
+            
+            var askAIBtn = new Button(AskAI) { text = "Ask AI" };
+            askAIBtn.name = "ask-ai-btn";
+            askAIBtn.style.width = 70;
+            askAIBtn.style.height = 24;
+            askAIBtn.style.marginLeft = 4;
+            askAIBtn.style.backgroundColor = new Color(0.3f, 0.5f, 0.7f);
+            aiInputRow.Add(askAIBtn);
+            
+            aiSection.Add(aiInputRow);
+            
+            // AI Status
+            _aiStatusLabel = new Label("");
+            _aiStatusLabel.style.fontSize = 10;
+            _aiStatusLabel.style.marginBottom = 6;
+            aiSection.Add(_aiStatusLabel);
+            
+            // AI Preview Panel
+            _aiPreviewPanel = new VisualElement();
+            _aiPreviewPanel.name = "ai-preview-panel";
+            _aiPreviewPanel.style.display = DisplayStyle.None;
+            _aiPreviewPanel.style.backgroundColor = new Color(0.15f, 0.15f, 0.2f);
+            _aiPreviewPanel.style.borderTopLeftRadius = 4;
+            _aiPreviewPanel.style.borderTopRightRadius = 4;
+            _aiPreviewPanel.style.borderBottomLeftRadius = 4;
+            _aiPreviewPanel.style.borderBottomRightRadius = 4;
+            _aiPreviewPanel.style.paddingTop = 6;
+            _aiPreviewPanel.style.paddingBottom = 6;
+            _aiPreviewPanel.style.paddingLeft = 8;
+            _aiPreviewPanel.style.paddingRight = 8;
+            _aiPreviewPanel.style.marginBottom = 6;
+            
+            var previewHeader = new Label("📋 Action Plan");
+            previewHeader.style.fontSize = 10;
+            previewHeader.style.unityFontStyleAndWeight = FontStyle.Bold;
+            previewHeader.style.marginBottom = 4;
+            _aiPreviewPanel.Add(previewHeader);
+            
+            var previewScroll = new ScrollView();
+            previewScroll.name = "preview-scroll";
+            previewScroll.style.maxHeight = 120;
+            _aiPreviewPanel.Add(previewScroll);
+            
+            var buttonRow = new VisualElement();
+            buttonRow.style.flexDirection = FlexDirection.Row;
+            buttonRow.style.marginTop = 6;
+            
+            _executeAllBtn = new Button(ExecuteAllAIActions) { text = "Execute All" };
+            _executeAllBtn.style.flexGrow = 1;
+            _executeAllBtn.style.height = 24;
+            _executeAllBtn.style.backgroundColor = new Color(0.2f, 0.6f, 0.2f);
+            _executeAllBtn.style.marginRight = 4;
+            buttonRow.Add(_executeAllBtn);
+            
+            _cancelBtn = new Button(CancelAIActions) { text = "Cancel" };
+            _cancelBtn.style.width = 70;
+            _cancelBtn.style.height = 24;
+            _cancelBtn.style.backgroundColor = new Color(0.5f, 0.3f, 0.3f);
+            buttonRow.Add(_cancelBtn);
+            
+            _aiPreviewPanel.Add(buttonRow);
+            aiSection.Add(_aiPreviewPanel);
+            
+            _root.Add(aiSection);
             
             // Quick Actions Section
             _quickActionsPanel = CreateSection("Quick Actions");
@@ -498,6 +603,157 @@ namespace LocalAI.Editor.UI
                 _statusLabel.style.color = new Color(0.9f, 0.7f, 0.4f);
             }
         }
+
+        #region AI Actions
+
+        private void AskAI()
+        {
+            if (_isProcessing)
+            {
+                _aiStatusLabel.text = "Please wait...";
+                _aiStatusLabel.style.color = new Color(0.9f, 0.7f, 0.4f);
+                return;
+            }
+
+            string request = _aiInput.value;
+            if (string.IsNullOrWhiteSpace(request))
+            {
+                _aiStatusLabel.text = "Please enter a request";
+                _aiStatusLabel.style.color = new Color(0.9f, 0.7f, 0.4f);
+                return;
+            }
+
+            _isProcessing = true;
+            _aiStatusLabel.text = "🔄 Generating action plan...";
+            _aiStatusLabel.style.color = new Color(0.6f, 0.7f, 0.9f);
+
+            // Disable button while processing
+            var askBtn = _root.Q<Button>("ask-ai-btn");
+            if (askBtn != null) askBtn.SetEnabled(false);
+
+            _aiActionService.GenerateActions(request,
+                actions => OnAIActionsGenerated(actions),
+                error => OnAIError(error)
+            );
+        }
+
+        private void OnAIActionsGenerated(List<AIAction> actions)
+        {
+            _isProcessing = false;
+            
+            var askBtn = _root.Q<Button>("ask-ai-btn");
+            if (askBtn != null) askBtn.SetEnabled(true);
+
+            if (actions == null || actions.Count == 0)
+            {
+                _aiStatusLabel.text = "⚠️ No actions generated";
+                _aiStatusLabel.style.color = new Color(0.9f, 0.7f, 0.4f);
+                _aiPreviewPanel.style.display = DisplayStyle.None;
+                return;
+            }
+
+            _pendingActions = actions;
+            _aiStatusLabel.text = $"✓ {actions.Count} actions ready";
+            _aiStatusLabel.style.color = new Color(0.6f, 0.9f, 0.6f);
+
+            UpdateAIPreview();
+        }
+
+        private void OnAIError(string error)
+        {
+            _isProcessing = false;
+            
+            var askBtn = _root.Q<Button>("ask-ai-btn");
+            if (askBtn != null) askBtn.SetEnabled(true);
+
+            _aiStatusLabel.text = $"❌ {error}";
+            _aiStatusLabel.style.color = new Color(0.9f, 0.4f, 0.4f);
+            _aiPreviewPanel.style.display = DisplayStyle.None;
+        }
+
+        private void UpdateAIPreview()
+        {
+            _aiPreviewPanel.style.display = DisplayStyle.Flex;
+
+            var scroll = _aiPreviewPanel.Q<ScrollView>("preview-scroll");
+            if (scroll == null) return;
+
+            scroll.Clear();
+
+            foreach (var action in _pendingActions)
+            {
+                var actionRow = new VisualElement();
+                actionRow.style.flexDirection = FlexDirection.Row;
+                actionRow.style.marginBottom = 2;
+
+                var icon = new Label(GetActionIcon(action.ActionType));
+                icon.style.width = 18;
+                icon.style.fontSize = 10;
+                actionRow.Add(icon);
+
+                var desc = new Label(action.GetDescription());
+                desc.style.fontSize = 9;
+                desc.style.flexGrow = 1;
+                desc.style.color = new Color(0.8f, 0.8f, 0.8f);
+                actionRow.Add(desc);
+
+                scroll.Add(actionRow);
+            }
+        }
+
+        private string GetActionIcon(string actionType)
+        {
+            switch (actionType)
+            {
+                case "CreatePrimitive":
+                case "CreateEmpty":
+                    return "📦";
+                case "AddComponent":
+                    return "➕";
+                case "SetParent":
+                    return "🔗";
+                case "SetTransform":
+                    return "↔️";
+                case "SetMaterial":
+                    return "🎨";
+                case "CreateScript":
+                    return "📝";
+                default:
+                    return "▪";
+            }
+        }
+
+        private void ExecuteAllAIActions()
+        {
+            if (_pendingActions == null || _pendingActions.Count == 0)
+            {
+                _aiStatusLabel.text = "No actions to execute";
+                return;
+            }
+
+            int executed = AIActionService.ExecuteActions(_pendingActions);
+            
+            _aiStatusLabel.text = $"✓ Executed {executed}/{_pendingActions.Count} actions";
+            _aiStatusLabel.style.color = new Color(0.6f, 0.9f, 0.6f);
+
+            // Add to history
+            AddToHistory($"[AI] {_aiInput.value}");
+
+            // Clear
+            _pendingActions.Clear();
+            _aiPreviewPanel.style.display = DisplayStyle.None;
+            _aiInput.value = "";
+        }
+
+        private void CancelAIActions()
+        {
+            _pendingActions.Clear();
+            _aiPreviewPanel.style.display = DisplayStyle.None;
+            _aiStatusLabel.text = "Cancelled";
+            _aiStatusLabel.style.color = new Color(0.7f, 0.7f, 0.7f);
+        }
+
+        #endregion
     }
 }
 

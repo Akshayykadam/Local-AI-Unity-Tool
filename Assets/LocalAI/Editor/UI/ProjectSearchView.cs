@@ -93,12 +93,6 @@ namespace LocalAI.Editor.UI
             title.style.flexGrow = 1;
             header.Add(title);
             
-            var closeBtn = new Button(() => Hide()) { text = "✕" };
-            closeBtn.style.width = 20;
-            closeBtn.style.height = 18;
-            closeBtn.style.fontSize = 10;
-            header.Add(closeBtn);
-            
             container.Add(header);
             
             // Search Row
