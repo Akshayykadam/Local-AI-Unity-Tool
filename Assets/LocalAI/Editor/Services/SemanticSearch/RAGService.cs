@@ -10,23 +10,32 @@ namespace LocalAI.Editor.Services.SemanticSearch
     /// <summary>
     /// Retrieval-Augmented Generation service.
     /// Combines semantic search with LLM reasoning for intelligent code queries.
+    /// Enhanced with hybrid search, query expansion, and result reranking.
     /// </summary>
     public class RAGService
     {
         private readonly SemanticIndex _index;
         private readonly Func<IInferenceService> _getInferenceService;
+        private readonly HybridSearchService _hybridSearch;
+        private readonly QueryProcessor _queryProcessor;
+        private readonly ResultReranker _reranker;
         
         private const int DEFAULT_TOP_K = 5;
         private const int MAX_CONTEXT_CHARS = 4000;
+        private const float MIN_RELEVANCE_SCORE = 0.25f;
         
         public RAGService(SemanticIndex index, Func<IInferenceService> getInferenceService)
         {
             _index = index;
             _getInferenceService = getInferenceService;
+            _hybridSearch = new HybridSearchService(index);
+            _queryProcessor = new QueryProcessor();
+            _reranker = new ResultReranker();
         }
         
         /// <summary>
-        /// Queries the codebase using RAG (retrieval + LLM reasoning).
+        /// Queries the codebase using enhanced RAG pipeline.
+        /// Pipeline: Query Expansion → Hybrid Search → Rerank → Context Build → LLM
         /// </summary>
         public async Task<string> QueryWithContextAsync(
             string userQuery,
@@ -44,23 +53,47 @@ namespace LocalAI.Editor.Services.SemanticSearch
                 return "⚠️ Index not ready. Please build the index first using the 'Re-Index' button.";
             }
             
-            // Step 1: Retrieve relevant code chunks
-            progress?.Report("🔍 Searching codebase...\n");
+            // Step 1: Classify query intent
+            QueryIntent intent = _queryProcessor.ClassifyQuery(userQuery);
+            progress?.Report($"🎯 Query Intent: {intent}\n");
             
-            List<SearchResult> results = _index.Query(userQuery, topK);
+            // Step 2: Perform hybrid search (semantic + keyword)
+            progress?.Report("🔍 Searching codebase...\n");
+            List<SearchResult> results = _hybridSearch.SearchWithIntent(userQuery, topK * 2);
             
             if (results.Count == 0)
             {
                 return "No relevant code found. Try a different query or rebuild the index.";
             }
             
-            // Step 2: Build context from retrieved chunks
+            // Step 3: Rerank results
+            progress?.Report("📊 Ranking results...\n");
+            results = _reranker.Rerank(results, userQuery, intent);
+            
+            // Step 4: Filter by relevance and deduplicate
+            results = _reranker.FilterByRelevance(results, MIN_RELEVANCE_SCORE);
+            results = _reranker.Deduplicate(results);
+            
+            // Take top K after filtering
+            if (results.Count > topK)
+            {
+                results = results.GetRange(0, topK);
+            }
+            
+            if (results.Count == 0)
+            {
+                return "No sufficiently relevant code found. Try rephrasing your query.";
+            }
+            
+            progress?.Report($"📋 Found {results.Count} relevant chunks\n\n");
+            
+            // Step 5: Build context from retrieved chunks
             string retrievedContext = BuildContext(results);
             
-            // Step 3: Build RAG prompt
-            string ragPrompt = BuildRAGPrompt(userQuery, retrievedContext, results);
+            // Step 6: Build RAG prompt
+            string ragPrompt = BuildRAGPrompt(userQuery, retrievedContext, results, intent);
             
-            // Step 4: Get LLM response
+            // Step 7: Get LLM response
             var inferenceService = _getInferenceService?.Invoke();
             
             if (inferenceService == null || !inferenceService.IsReady)
@@ -87,11 +120,55 @@ namespace LocalAI.Editor.Services.SemanticSearch
         }
         
         /// <summary>
-        /// Performs search-only query (no LLM reasoning).
+        /// Gets context for a query without LLM response. Used for Chat integration.
+        /// </summary>
+        public string GetContextForQuery(string query, int topK = 3)
+        {
+            if (_index.State != IndexState.Ready || string.IsNullOrWhiteSpace(query))
+                return "";
+                
+            QueryIntent intent = _queryProcessor.ClassifyQuery(query);
+            var results = _hybridSearch.SearchWithIntent(query, topK * 2);
+            
+            if (results.Count == 0)
+                return "";
+                
+            results = _reranker.Rerank(results, query, intent);
+            results = _reranker.FilterByRelevance(results, MIN_RELEVANCE_SCORE);
+            results = _reranker.Deduplicate(results);
+            
+            if (results.Count > topK)
+                results = results.GetRange(0, topK);
+                
+            if (results.Count == 0)
+                return "";
+                
+            var sb = new StringBuilder();
+            sb.AppendLine("=== RELEVANT CODE FROM PROJECT ===");
+            sb.AppendLine(BuildContext(results));
+            sb.AppendLine("=== END OF PROJECT CONTEXT ===\n");
+            
+            Debug.Log($"[LocalAI] RAG context added: {results.Count} chunks");
+            
+            return sb.ToString();
+        }
+        
+        /// <summary>
+        /// Performs search-only query using enhanced pipeline.
         /// </summary>
         public List<SearchResult> SearchOnly(string query, int topK = DEFAULT_TOP_K)
         {
-            return _index.Query(query, topK);
+            if (_index.State != IndexState.Ready)
+                return new List<SearchResult>();
+                
+            QueryIntent intent = _queryProcessor.ClassifyQuery(query);
+            var results = _hybridSearch.SearchWithIntent(query, topK * 2);
+            
+            results = _reranker.Rerank(results, query, intent);
+            results = _reranker.FilterByRelevance(results, MIN_RELEVANCE_SCORE);
+            results = _reranker.Deduplicate(results);
+            
+            return results.Count > topK ? results.GetRange(0, topK) : results;
         }
         
         private string BuildContext(List<SearchResult> results)
@@ -127,21 +204,43 @@ namespace LocalAI.Editor.Services.SemanticSearch
             var sb = new StringBuilder();
             var chunk = result.Chunk;
             
-            sb.AppendLine($"--- {chunk.Name} ({chunk.Type}) ---");
-            sb.AppendLine($"File: {GetRelativePath(chunk.FilePath)} (lines {chunk.StartLine}-{chunk.EndLine})");
+            // Header with type and relevance
+            sb.AppendLine($"[{chunk.Type.ToUpper()}] {chunk.Name} (Relevance: {result.Score:P0})");
             
-            if (!string.IsNullOrEmpty(chunk.Summary))
+            // Signature prominently displayed
+            if (!string.IsNullOrEmpty(chunk.Signature))
             {
-                sb.AppendLine($"Summary: {chunk.Summary}");
+                sb.AppendLine($"Signature: {chunk.Signature}");
             }
             
+            // Location
+            sb.AppendLine($"Location: {GetRelativePath(chunk.FilePath)}:{chunk.StartLine}-{chunk.EndLine}");
+            
+            // Documentation
+            if (!string.IsNullOrEmpty(chunk.Summary))
+            {
+                sb.AppendLine($"Description: {chunk.Summary}");
+            }
+            
+            // Code block
             sb.AppendLine("```csharp");
             
-            // Limit code content
+            // For methods, extract just the signature + body summary if too long
             string content = chunk.Content;
-            if (content.Length > 800)
+            if (content.Length > 600)
             {
-                content = content.Substring(0, 800) + "\n// ... (truncated)";
+                // Try to keep the first meaningful portion
+                int cutPoint = Math.Min(600, content.Length);
+                // Find last complete line
+                int lastNewline = content.LastIndexOf('\n', cutPoint);
+                if (lastNewline > 200)
+                {
+                    content = content.Substring(0, lastNewline) + "\n    // ... (implementation continues)";
+                }
+                else
+                {
+                    content = content.Substring(0, cutPoint) + "...";
+                }
             }
             sb.AppendLine(content.Trim());
             
@@ -151,26 +250,41 @@ namespace LocalAI.Editor.Services.SemanticSearch
             return sb.ToString();
         }
         
-        private string BuildRAGPrompt(string query, string context, List<SearchResult> results)
+        private string BuildRAGPrompt(string query, string context, List<SearchResult> results, QueryIntent intent)
         {
             var sb = new StringBuilder();
             
-            sb.AppendLine("[INST] You are an expert Unity C# code assistant. Answer questions about the codebase using ONLY the retrieved code context below.");
+            sb.AppendLine("[INST] You are an expert Unity C# code analyst. Your task is to answer questions using ONLY the retrieved code context below.");
             sb.AppendLine();
-            sb.AppendLine("RULES:");
-            sb.AppendLine("1. ONLY reference code that appears in the context below");
-            sb.AppendLine("2. Quote exact file paths and line numbers when referencing code");
-            sb.AppendLine("3. If the context doesn't contain enough information, say so clearly");
-            sb.AppendLine("4. Be concise and accurate - no speculation");
-            sb.AppendLine("5. Format code references as: `FileName.cs:Line` or `ClassName.MethodName()`");
+            
+            // Intent-specific system prompt
+            string intentInstruction = intent switch
+            {
+                QueryIntent.Debug => "FOCUS: Identify bugs, null reference risks, race conditions, or logic errors. Suggest specific fixes with code.",
+                QueryIntent.HowTo => "FOCUS: Provide step-by-step implementation guidance using patterns found in the codebase.",
+                QueryIntent.Explain => "FOCUS: Explain the purpose, flow, and design of the code. Use the actual signatures and class names.",
+                QueryIntent.FindClass => "FOCUS: Describe the class structure, its responsibilities, key methods, and how it relates to other components.",
+                QueryIntent.FindMethod => "FOCUS: Explain what the method does, its parameters, return value, and any side effects.",
+                QueryIntent.FindProperty => "FOCUS: Describe the property's purpose, type, and any getter/setter logic.",
+                _ => "FOCUS: Provide accurate, specific answers referencing the actual code."
+            };
+            
+            sb.AppendLine("STRICT RULES:");
+            sb.AppendLine("1. ONLY cite code that appears in the context below - do NOT invent or guess API names");
+            sb.AppendLine("2. Reference files and line numbers precisely: `FileName.cs:42`");
+            sb.AppendLine("3. Quote method signatures exactly as shown");
+            sb.AppendLine("4. If the context is insufficient, clearly state what information is missing");
+            sb.AppendLine("5. Be concise - avoid generic programming advice");
             sb.AppendLine();
-            sb.AppendLine("=== RETRIEVED CODE CONTEXT ===");
+            sb.AppendLine(intentInstruction);
+            sb.AppendLine();
+            sb.AppendLine("========== RETRIEVED CODE CONTEXT ==========");
             sb.AppendLine(context);
-            sb.AppendLine("=== END OF CONTEXT ===");
+            sb.AppendLine("========== END OF CONTEXT ==========");
             sb.AppendLine();
-            sb.AppendLine($"USER QUESTION: {query}");
+            sb.AppendLine($"QUESTION: {query}");
             sb.AppendLine();
-            sb.AppendLine("Provide a clear, factual answer based on the code context above. [/INST]");
+            sb.AppendLine("Answer accurately using only the code above. Start with the most relevant information. [/INST]");
             
             return sb.ToString();
         }
@@ -180,7 +294,7 @@ namespace LocalAI.Editor.Services.SemanticSearch
             var sb = new StringBuilder();
             
             sb.AppendLine($"## Search Results for: \"{query}\"\n");
-            sb.AppendLine("*(No LLM available for analysis - showing raw results)*\n");
+            sb.AppendLine("*(No LLM available for analysis - showing ranked results)*\n");
             
             for (int i = 0; i < results.Count; i++)
             {

@@ -265,6 +265,9 @@ namespace LocalAI.Editor.UI
             var contextView = new ContextView(_chatTab, _contextCollector);
             var responseView = new ResponseView(_chatTab);
             _actionBarView = new ActionBarView(_chatTab, _modelManager, _inferenceService, contextView, responseView);
+            
+            // Wire up RAG integration for Chat
+            _actionBarView.SetSemanticIndex(_semanticIndex);
         }
 
         private void CreateSearchTab()
@@ -516,6 +519,43 @@ namespace LocalAI.Editor.UI
             modelSection.Add(deleteBtn);
             
             scroll.Add(modelSection);
+            
+            // RAG Settings Section
+            var ragSection = CreateSettingsSection("RAG (Code Context)");
+            
+            var ragDescription = new Label("Retrieval-Augmented Generation adds relevant code from your project to AI queries.");
+            ragDescription.style.fontSize = 10;
+            ragDescription.style.color = new Color(0.6f, 0.6f, 0.6f);
+            ragDescription.style.whiteSpace = WhiteSpace.Normal;
+            ragDescription.style.marginBottom = 8;
+            ragSection.Add(ragDescription);
+            
+            var ragToggle = new Toggle("Enable RAG for Chat");
+            ragToggle.value = LocalAISettings.EnableRAG;
+            ragToggle.style.marginBottom = 8;
+            ragToggle.RegisterValueChangedCallback(evt => LocalAISettings.EnableRAG = evt.newValue);
+            ragSection.Add(ragToggle);
+            
+            var ragTopKLabel = new Label("Context Chunks (how many code snippets to retrieve)");
+            ragTopKLabel.AddToClassList("field-label");
+            ragSection.Add(ragTopKLabel);
+            
+            var ragTopKList = new System.Collections.Generic.List<string>(LocalAISettings.RAGTopKLabels);
+            var ragTopKDropdown = new PopupField<string>(ragTopKList, LocalAISettings.GetRAGTopKIndex());
+            ragTopKDropdown.style.marginBottom = 8;
+            ragTopKDropdown.RegisterValueChangedCallback(evt =>
+            {
+                int index = ragTopKList.IndexOf(evt.newValue);
+                if (index >= 0) LocalAISettings.RAGTopK = LocalAISettings.RAGTopKOptions[index];
+            });
+            ragSection.Add(ragTopKDropdown);
+            
+            var indexStatusLabel = new Label($"Index Status: {(_semanticIndex?.State.ToString() ?? "Not initialized")}");
+            indexStatusLabel.style.fontSize = 10;
+            indexStatusLabel.style.color = new Color(0.5f, 0.7f, 0.5f);
+            ragSection.Add(indexStatusLabel);
+            
+            scroll.Add(ragSection);
             
             _settingsTab.Add(scroll);
         }

@@ -3,6 +3,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 using LocalAI.Editor.Services;
+using LocalAI.Editor.Services.SemanticSearch;
 
 namespace LocalAI.Editor.UI
 {
@@ -15,6 +16,10 @@ namespace LocalAI.Editor.UI
         private readonly ClaudeInferenceService _claudeService;
         private readonly ContextView _contextView;
         private readonly ResponseView _responseView;
+        
+        // RAG Integration
+        private RAGService _ragService;
+        private SemanticIndex _semanticIndex;
 
         private readonly Button _btnAsk;
         private readonly Button _btnExplainError;
@@ -156,6 +161,20 @@ namespace LocalAI.Editor.UI
                 _ => _localInferenceService
             };
         }
+        
+        /// <summary>
+        /// Sets the semantic index for RAG integration.
+        /// Called from LocalAIEditorWindow after initialization.
+        /// </summary>
+        public void SetSemanticIndex(SemanticIndex index)
+        {
+            _semanticIndex = index;
+            if (index != null)
+            {
+                _ragService = new RAGService(index, GetActiveService);
+                Debug.Log("[LocalAI] RAG Service initialized for Chat");
+            }
+        }
 
         private void AnalyzeScene()
         {
@@ -207,6 +226,22 @@ namespace LocalAI.Editor.UI
 
               _responseView.SetText("");
               string context = contextOverride ?? _contextView.GetContext();
+              
+              // RAG Integration: Add relevant code context for "Ask" queries
+              if (LocalAISettings.EnableRAG && 
+                  _ragService != null && 
+                  _semanticIndex != null && 
+                  _semanticIndex.State == IndexState.Ready &&
+                  prefix.Contains("Question"))
+              {
+                  _responseView.AppendText("🔍 Retrieving relevant code...\n");
+                  string ragContext = _ragService.GetContextForQuery(context, LocalAISettings.RAGTopK);
+                  if (!string.IsNullOrEmpty(ragContext))
+                  {
+                      context = ragContext + context;
+                      _responseView.AppendText($"📋 Added {LocalAISettings.RAGTopK} relevant code chunks\n\n");
+                  }
+              }
              
              string fullPrompt;
              if (provider == AIProvider.Local)

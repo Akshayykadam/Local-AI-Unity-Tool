@@ -21,6 +21,13 @@ namespace LocalAI.Editor.Services.SemanticSearch
         public string Summary;     // XML comment if present
         public string ChunkId;     // Unique identifier for this chunk
         
+        // Enhanced metadata for better RAG context
+        public string Signature;   // Clean method/property signature (e.g., "public void Move(Vector3 direction)")
+        public string Namespace;   // Namespace of the containing type
+        public string BaseClass;   // Base class or interfaces (for classes)
+        public string ReturnType;  // Return type for methods
+        public string Parameters;  // Parameters for methods
+        
         public override string ToString() => $"{Type}: {Name} ({FilePath}:{StartLine}-{EndLine})";
     }
 
@@ -146,6 +153,28 @@ namespace LocalAI.Editor.Services.SemanticSearch
                 // Extract content (lines from start to end)
                 string content = ExtractLines(lines, startLine - 1, endLine - 1);
                 
+                // Extract enhanced metadata
+                string modifiers = match.Groups["modifiers"].Success ? match.Groups["modifiers"].Value.Trim() : "";
+                string returnType = "";
+                string parameters = "";
+                string signature = "";
+                
+                if (type == "method")
+                {
+                    returnType = match.Groups["returnType"].Success ? match.Groups["returnType"].Value.Trim() : "void";
+                    parameters = match.Groups["params"].Success ? match.Groups["params"].Value.Trim() : "";
+                    signature = $"{modifiers} {returnType} {match.Groups["name"].Value}({parameters})".Trim();
+                }
+                else if (type == "property")
+                {
+                    returnType = match.Groups["type"].Success ? match.Groups["type"].Value.Trim() : "";
+                    signature = $"{modifiers} {returnType} {match.Groups["name"].Value} {{ get; set; }}".Trim();
+                }
+                else if (type == "class")
+                {
+                    signature = $"{modifiers} class {match.Groups["name"].Value}".Trim();
+                }
+                
                 return new CodeChunk
                 {
                     FilePath = filePath,
@@ -155,7 +184,12 @@ namespace LocalAI.Editor.Services.SemanticSearch
                     Name = name,
                     Content = content,
                     Summary = summary,
-                    ChunkId = GenerateChunkId(filePath, startLine, endLine)
+                    ChunkId = GenerateChunkId(filePath, startLine, endLine),
+                    Signature = signature,
+                    Namespace = "", // Will be extracted at file level
+                    BaseClass = "", // Could enhance later
+                    ReturnType = returnType,
+                    Parameters = parameters
                 };
             }
             catch

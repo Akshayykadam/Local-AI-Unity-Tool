@@ -603,6 +603,89 @@ Index data is stored in `Library/LocalAI/SemanticIndex/`:
 
 ---
 
+## RAG Pipeline (NEW)
+
+The Retrieval-Augmented Generation pipeline enhances both Project Search and Chat with advanced retrieval techniques.
+
+### Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     User Query                               │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    QueryProcessor                            │
+│  • Query Expansion ("movement" → "rigidbody velocity")      │
+│  • Intent Classification (FindClass, Debug, HowTo, etc.)    │
+│  • Unity Keyword Injection                                  │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                   HybridSearchService                        │
+│  • 70% Semantic Search (vector similarity)                  │
+│  • 30% Keyword Search (BM25-style matching)                 │
+│  • Intent-aware filtering                                   │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    ResultReranker                            │
+│  • Keyword density scoring                                  │
+│  • Recency bonus (recently modified files)                  │
+│  • Code structure match (class vs method vs property)       │
+│  • Deduplication                                            │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                      RAGService                              │
+│  • Context building with signatures                         │
+│  • Intent-specific prompts                                  │
+│  • LLM inference                                            │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Key Components
+
+| Component | Location | Purpose |
+|-----------|----------|----------|
+| `QueryProcessor` | `SemanticSearch/QueryProcessor.cs` | Query expansion, intent classification |
+| `HybridSearchService` | `SemanticSearch/HybridSearchService.cs` | Combined semantic + keyword search |
+| `ResultReranker` | `SemanticSearch/ResultReranker.cs` | Multi-signal relevance scoring |
+| `RAGService` | `SemanticSearch/RAGService.cs` | Context building, prompt construction |
+
+### Enhanced CodeChunk Metadata
+
+```csharp
+public struct CodeChunk
+{
+    // Existing fields
+    public string FilePath;
+    public string Name;
+    public string Type;       // "class", "method", "property"
+    public string Content;
+    public string Summary;
+    
+    // NEW: Enhanced metadata
+    public string Signature;   // "public void Move(Vector3 dir)"
+    public string ReturnType;  // "void", "bool", etc.
+    public string Parameters;  // Method parameters
+}
+```
+
+### RAG Settings
+
+| Setting | Key | Default | Description |
+|---------|-----|---------|-------------|
+| Enable RAG | `LocalAI_EnableRAG` | true | Add code context to Chat |
+| Top K | `LocalAI_RAGTopK` | 3 | Chunks to retrieve |
+| Min Relevance | `LocalAI_RAGMinRelevance` | 0.25 | Score threshold |
+
+---
+
 ## License
 
 MIT License - See LICENSE file for details.

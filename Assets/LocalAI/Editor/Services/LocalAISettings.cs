@@ -258,5 +258,49 @@ namespace LocalAI.Editor.Services
             
             return result;
         }
+        
+        // ===== RAG (Retrieval-Augmented Generation) Settings =====
+        
+        /// <summary>
+        /// Whether to use RAG for Chat tab queries.
+        /// When enabled, relevant code from the project is retrieved and added to context.
+        /// </summary>
+        public static bool EnableRAG
+        {
+            get => EditorPrefs.GetBool(PREFIX + "EnableRAG", true);
+            set => EditorPrefs.SetBool(PREFIX + "EnableRAG", value);
+        }
+        
+        /// <summary>
+        /// Number of code chunks to retrieve for RAG context.
+        /// </summary>
+        public static int RAGTopK
+        {
+            get => EditorPrefs.GetInt(PREFIX + "RAGTopK", 3);
+            set => EditorPrefs.SetInt(PREFIX + "RAGTopK", Mathf.Clamp(value, 1, 10));
+        }
+        
+        /// <summary>
+        /// Minimum relevance score (0-1) for chunks to be included in RAG context.
+        /// </summary>
+        public static float RAGMinRelevance
+        {
+            get => EditorPrefs.GetFloat(PREFIX + "RAGMinRelevance", 0.25f);
+            set => EditorPrefs.SetFloat(PREFIX + "RAGMinRelevance", Mathf.Clamp01(value));
+        }
+        
+        // RAG TopK options for UI
+        public static readonly int[] RAGTopKOptions = { 1, 2, 3, 5, 7, 10 };
+        public static readonly string[] RAGTopKLabels = { "1 (Minimal)", "2 (Light)", "3 (Standard)", "5 (More)", "7 (Extensive)", "10 (Maximum)" };
+        
+        public static int GetRAGTopKIndex()
+        {
+            int current = RAGTopK;
+            for (int i = 0; i < RAGTopKOptions.Length; i++)
+            {
+                if (RAGTopKOptions[i] == current) return i;
+            }
+            return 2; // Default to 3 (Index 2)
+        }
     }
 }

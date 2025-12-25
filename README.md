@@ -14,8 +14,9 @@
 | Feature | Description |
 | :--- | :--- |
 | **Tabbed Interface** | Horizontal tabs: Chat, Search, Analyze, Actions, Refactor, Settings |
-| **AI-Powered Actions** | [NEW] Describe complex setups - AI builds entire scenes |
-| **Actions Tab** | Quick actions, templates, smart suggestions |
+| **AI-Powered Actions** | Describe complex setups - AI builds entire scenes |
+| **RAG-Enhanced Chat** | [NEW] Chat queries retrieve relevant code from your project automatically |
+| **Advanced Search** | [NEW] Hybrid search with query expansion, reranking, and intent detection |
 | **Code Refactoring** | Rename symbols, find references, call hierarchy |
 | **Project Search** | Semantic code search - ask questions about your codebase |
 | **Scene Analyzer** | One-click scene performance and hygiene analysis |
@@ -63,10 +64,17 @@ Your AI coding assistant for Unity development.
 
 ### Features
 - **Ask Questions**: Get answers about Unity APIs, C# patterns, best practices
+- **RAG-Enhanced Context**: [NEW] Automatically retrieves relevant code from your project
 - **Explain Code**: Select any script and ask AI to explain what it does
 - **Generate Scripts**: Describe what you need, AI generates complete C# scripts
 - **Fix Errors**: Paste console errors, AI suggests fixes
 - **Context Aware**: AI sees your selected scripts, GameObjects, and scene hierarchy
+
+### RAG (Retrieval-Augmented Generation)
+When enabled in Settings, the Chat tab automatically:
+1. Searches your indexed project for relevant code
+2. Adds code context (signatures, locations) to your query
+3. Uses this context to provide accurate, project-specific answers
 
 ### Actions
 | Button | What it does |
@@ -87,18 +95,21 @@ Your AI coding assistant for Unity development.
 
 ## Search Tab
 
-Semantic search across your entire codebase.
+Advanced semantic search across your entire codebase with RAG enhancements.
 
 ### Features
 - **Natural Language Queries**: Ask "Where is player health managed?" instead of searching for keywords
-- **Project-Wide Index**: Indexes all C# scripts in your project
-- **Ranked Results**: Most relevant results shown first
+- **Hybrid Search**: [NEW] Combines semantic (vector) search with keyword matching
+- **Query Expansion**: [NEW] Automatically adds Unity-specific terms ("movement" → "rigidbody velocity")
+- **Intent Detection**: [NEW] Detects query type (FindClass, FindMethod, Debug, HowTo, Explain)
+- **Smart Reranking**: [NEW] Results ranked by relevance, recency, and code structure
 - **Click to Open**: Jump directly to the file and line
 
 ### How to Use
 1. Click **Build Index** to scan your project scripts
 2. Type your question in the search box
-3. Click results to open files in your IDE
+3. AI provides context-aware answers with code references
+4. Click results to open files in your IDE
 
 ---
 
@@ -228,6 +239,12 @@ Configure AI provider and generation parameters.
 |---------|-------|-------------|
 | **Context Size** | 2K - 32K | How much code context AI can see |
 | **Max Response** | 512 - 8192 | Maximum tokens in AI response |
+
+### RAG Settings (NEW)
+| Setting | Range | Description |
+|---------|-------|-------------|
+| **Enable RAG** | On/Off | Add project code context to Chat queries |
+| **Context Chunks** | 1 - 10 | Number of code snippets to retrieve |
 
 ### Local Model
 - Click **Download Model** to get the 4GB AI model
