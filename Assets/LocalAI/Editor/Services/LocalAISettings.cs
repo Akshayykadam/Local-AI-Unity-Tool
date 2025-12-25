@@ -149,9 +149,9 @@ namespace LocalAI.Editor.Services
         public static readonly uint[] ContextSizeOptions = { 2048, 4096, 8192, 16384, 32768 };
         public static readonly string[] ContextSizeLabels = { "2K (Fast)", "4K (Standard)", "8K (Large)", "16K (Huge)", "32K (Massive)" };
         
-        // Max Tokens options  
-        public static readonly int[] MaxTokensOptions = { 512, 1024, 2048, 4096, 8192 };
-        public static readonly string[] MaxTokensLabels = { "512 (Short)", "1024 (Normal)", "2048 (Long)", "4096 (Extensive)", "8192 (Max)" };
+        // Max Tokens options (Cloud providers like Gemini support higher limits)
+        public static readonly int[] MaxTokensOptions = { 1024, 2048, 4096, 8192, 16384, 32768 };
+        public static readonly string[] MaxTokensLabels = { "1K (Short)", "2K (Normal)", "4K (Long)", "8K (Extensive)", "16K (Large)", "32K (Max)" };
         
         public static uint ContextSize
         {
@@ -161,7 +161,7 @@ namespace LocalAI.Editor.Services
         
         public static int MaxTokens
         {
-            get => EditorPrefs.GetInt(PREFIX + "MaxTokens", 2048); // Default to 2048
+            get => EditorPrefs.GetInt(PREFIX + "MaxTokens", 4096); // Default to 4096 for longer outputs
             set => EditorPrefs.SetInt(PREFIX + "MaxTokens", value);
         }
         

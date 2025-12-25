@@ -419,12 +419,12 @@ Uses Unity Editor native color palette:
 public static class LocalAISettings
 {
     // Persisted via EditorPrefs
-    public static uint ContextSize { get; set; }  // 1024-8192
-    public static int MaxTokens { get; set; }     // 128-1024
+    public static uint ContextSize { get; set; }  // 2048-32768
+    public static int MaxTokens { get; set; }     // 1024-32768 (default: 4096)
     
     // Available options
-    public static readonly uint[] ContextSizeOptions = { 1024, 2048, 4096, 8192 };
-    public static readonly int[] MaxTokensOptions = { 128, 256, 512, 1024 };
+    public static readonly uint[] ContextSizeOptions = { 2048, 4096, 8192, 16384, 32768 };
+    public static readonly int[] MaxTokensOptions = { 1024, 2048, 4096, 8192, 16384, 32768 };
 }
 ```
 

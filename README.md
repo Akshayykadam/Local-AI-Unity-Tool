@@ -238,7 +238,7 @@ Configure AI provider and generation parameters.
 | Setting | Range | Description |
 |---------|-------|-------------|
 | **Context Size** | 2K - 32K | How much code context AI can see |
-| **Max Response** | 512 - 8192 | Maximum tokens in AI response |
+| **Max Response** | 1K - 32K | Maximum tokens in AI response (increase for longer outputs) |
 
 ### RAG Settings (NEW)
 | Setting | Range | Description |
